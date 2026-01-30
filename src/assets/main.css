@@ -1,0 +1,166 @@
+/* Apple Design System 2025 - Liquid Glass */
+@import './apple-design-system.css';
+
+/* Blob Animation */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-6000 {
+  animation-delay: 6s;
+}
+
+/* Apple 设计系统 - 浅色模式 */
+:root {
+  --interface-scale: 1;
+  font-size: calc(16px * var(--interface-scale));
+
+  /* 背景：Apple 风格的纯白/浅灰 */
+  --background: 0 0% 98%;
+  --foreground: 0 0% 11%;
+
+  /* 卡片 */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 11%;
+
+  /* 弹出层 */
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 11%;
+
+  /* 主色：Apple 蓝 #007AFF */
+  --primary: 211 100% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  /* 次要色 */
+  --secondary: 240 9% 96%;
+  --secondary-foreground: 0 0% 11%;
+
+  /* 柔和色 */
+  --muted: 240 5% 70%;
+  --muted-foreground: 0 0% 42%;
+
+  /* 强调色 */
+  --accent: 240 9% 96%;
+  --accent-foreground: 0 0% 11%;
+
+  /* 破坏性操作：Apple 红 */
+  --destructive: 4 100% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* 边框 */
+  --border: 249 10% 91%;
+  --input: 249 10% 91%;
+  --ring: 211 100% 50%;
+  --radius: 12px;
+
+  /* 毛玻璃效果（浅色模式） */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.06);
+  --sidebar-bg: rgba(250, 250, 250, 0.85);
+  --sidebar-blur: 40px;
+  --card-glass-bg: rgba(255, 255, 255, 0.90);
+  --card-glass-border: rgba(0, 0, 0, 0.06);
+  --dialog-overlay-bg: rgba(0, 0, 0, 0.40);
+  --dialog-glass-bg: rgba(255, 255, 255, 0.95);
+}
+
+/* Apple 设计系统 - 深色模式 */
+.dark {
+  --background: 0 0% 11%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 23%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 23%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 211 100% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 2% 32%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 2% 32%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 240 2% 32%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 3 100% 61%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 2% 32%;
+  --input: 240 2% 32%;
+  --ring: 211 100% 52%;
+
+  /* 毛玻璃效果（深色模式） */
+  --glass-bg: rgba(28, 28, 30, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: rgba(0, 0, 0, 0.20);
+  --sidebar-bg: rgba(28, 28, 30, 0.85);
+  --card-glass-bg: rgba(58, 58, 60, 0.90);
+  --card-glass-border: rgba(255, 255, 255, 0.10);
+  --dialog-overlay-bg: rgba(0, 0, 0, 0.60);
+  --dialog-glass-bg: rgba(28, 28, 30, 0.95);
+}
+
+/* 基础样式 */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 毛玻璃工具类 */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-sidebar {
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(var(--sidebar-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--sidebar-blur)) saturate(180%);
+  border-right: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--card-glass-border);
+}
+
+.glass-dialog {
+  background: var(--dialog-glass-bg);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* 缩放字体工具类 */
+.text-\[12px\], .sm\:text-\[12px\] { font-size: calc(12px * var(--interface-scale)); }
+.text-\[13px\], .sm\:text-\[13px\] { font-size: calc(13px * var(--interface-scale)); }
+.text-\[14px\], .sm\:text-\[14px\] { font-size: calc(14px * var(--interface-scale)); }
+.text-\[15px\], .sm\:text-\[15px\] { font-size: calc(15px * var(--interface-scale)); }
+.text-\[17px\], .sm\:text-\[17px\] { font-size: calc(17px * var(--interface-scale)); }
+.text-\[34px\], .sm\:text-\[34px\] { font-size: calc(34px * var(--interface-scale)); }
+.text-\[40px\], .sm\:text-\[40px\] { font-size: calc(40px * var(--interface-scale)); }

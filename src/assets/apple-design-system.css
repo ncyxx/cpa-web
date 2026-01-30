@@ -1,0 +1,480 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ======================== */
+  /* Apple Design System 2025 */
+  /* Liquid Glass 设计语言   */
+  /* ======================== */
+
+  :root {
+    /* ===== 系统颜色 System Colors ===== */
+
+    /* 主色调 Primary Colors */
+    --apple-blue: 0, 122, 255;           /* #007AFF - Apple Blue */
+    --apple-purple: 94, 92, 230;         /* #5E5CE6 - Apple Purple */
+    --apple-pink: 255, 55, 95;           /* #FF375F - Apple Pink */
+    --apple-red: 255, 59, 48;            /* #FF3B30 - Apple Red */
+    --apple-orange: 255, 159, 10;        /* #FF9F0A - Apple Orange */
+    --apple-yellow: 255, 214, 10;        /* #FFD60A - Apple Yellow */
+    --apple-green: 52, 199, 89;          /* #34C759 - Apple Green */
+    --apple-mint: 0, 199, 190;           /* #00C7BE - Apple Mint */
+    --apple-teal: 48, 176, 199;          /* #30B0C7 - Apple Teal */
+    --apple-cyan: 50, 173, 230;          /* #32ADE6 - Apple Cyan */
+    --apple-indigo: 88, 86, 214;         /* #5856D6 - Apple Indigo */
+
+    /* ===== 浅色模式 Light Mode ===== */
+
+    /* 标签颜色 Label Colors */
+    --label: 0, 0, 0;
+    --secondary-label: 60, 60, 67, 0.6;
+    --tertiary-label: 60, 60, 67, 0.3;
+    --quaternary-label: 60, 60, 67, 0.18;
+    --placeholder-text: 60, 60, 67, 0.3;
+
+    /* 填充颜色 Fill Colors */
+    --fill: 120, 120, 128, 0.2;
+    --secondary-fill: 120, 120, 128, 0.16;
+    --tertiary-fill: 118, 118, 128, 0.12;
+    --quaternary-fill: 116, 116, 128, 0.08;
+
+    /* 背景颜色 Background Colors */
+    --system-background: 255, 255, 255;
+    --secondary-system-background: 242, 242, 247;
+    --tertiary-system-background: 255, 255, 255;
+    --grouped-background: 242, 242, 247;
+    --secondary-grouped-background: 255, 255, 255;
+    --tertiary-grouped-background: 242, 242, 247;
+
+    /* 分隔线 Separator Colors */
+    --separator: 60, 60, 67, 0.12;
+    --opaque-separator: 198, 198, 200;
+
+    /* 链接 Link Color */
+    --link: 0, 122, 255;
+
+    /* 系统灰度 System Grays */
+    --system-gray: 142, 142, 147;
+    --system-gray-2: 174, 174, 178;
+    --system-gray-3: 199, 199, 204;
+    --system-gray-4: 209, 209, 214;
+    --system-gray-5: 229, 229, 234;
+    --system-gray-6: 242, 242, 247;
+
+    /* ===== Liquid Glass 效果 ===== */
+
+    /* 玻璃材质 Glass Materials */
+    --glass-ultra-thin: 255, 255, 255, 0.5;
+    --glass-thin: 255, 255, 255, 0.72;
+    --glass-regular: 255, 255, 255, 0.82;
+    --glass-thick: 255, 255, 255, 0.92;
+    --glass-chrome: 255, 255, 255, 0.96;
+
+    /* 玻璃边框 Glass Borders */
+    --glass-border-light: 255, 255, 255, 0.18;
+    --glass-border-regular: 0, 0, 0, 0.08;
+    --glass-border-strong: 0, 0, 0, 0.12;
+
+    /* 阴影系统 Shadow System */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 10px 20px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06), 0 20px 40px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08), 0 40px 60px rgba(0, 0, 0, 0.12);
+    --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.12), 0 60px 80px rgba(0, 0, 0, 0.16);
+
+    /* 光泽效果 Gloss Effect */
+    --gloss-light: inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+    --gloss-strong: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    /* ===== 动画系统 Animation System ===== */
+
+    /* 缓动函数 Easing Functions */
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-swift: cubic-bezier(0.86, 0, 0.07, 1);
+
+    /* 动画时长 Durations */
+    --duration-instant: 100ms;
+    --duration-fast: 200ms;
+    --duration-normal: 350ms;
+    --duration-slow: 500ms;
+    --duration-slower: 700ms;
+
+    /* ===== 间距系统 Spacing System ===== */
+    --spacing-0: 0px;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-7: 28px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+    --spacing-20: 80px;
+
+    /* ===== 圆角系统 Radius System ===== */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-3xl: 24px;
+    --radius-full: 9999px;
+
+    /* 组件专用圆角 */
+    --radius-button: 8px;
+    --radius-input: 10px;
+    --radius-card: 12px;
+    --radius-modal: 14px;
+    --radius-sheet: 16px;
+
+    /* ===== Tailwind兼容 ===== */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 211 100% 50%;
+    --radius: 12px;
+  }
+
+  /* ===== 深色模式 Dark Mode ===== */
+  .dark {
+    --label: 255, 255, 255;
+    --secondary-label: 235, 235, 245, 0.6;
+    --tertiary-label: 235, 235, 245, 0.3;
+    --quaternary-label: 235, 235, 245, 0.18;
+    --placeholder-text: 235, 235, 245, 0.3;
+
+    --fill: 120, 120, 128, 0.36;
+    --secondary-fill: 120, 120, 128, 0.32;
+    --tertiary-fill: 118, 118, 128, 0.24;
+    --quaternary-fill: 116, 116, 128, 0.18;
+
+    --system-background: 0, 0, 0;
+    --secondary-system-background: 28, 28, 30;
+    --tertiary-system-background: 44, 44, 46;
+    --grouped-background: 0, 0, 0;
+    --secondary-grouped-background: 28, 28, 30;
+    --tertiary-grouped-background: 44, 44, 46;
+
+    --separator: 84, 84, 88, 0.6;
+    --opaque-separator: 56, 56, 58;
+    --link: 10, 132, 255;
+
+    --system-gray: 142, 142, 147;
+    --system-gray-2: 99, 99, 102;
+    --system-gray-3: 72, 72, 74;
+    --system-gray-4: 58, 58, 60;
+    --system-gray-5: 44, 44, 46;
+    --system-gray-6: 28, 28, 30;
+
+    --glass-ultra-thin: 30, 30, 30, 0.5;
+    --glass-thin: 30, 30, 30, 0.72;
+    --glass-regular: 30, 30, 30, 0.82;
+    --glass-thick: 30, 30, 30, 0.92;
+    --glass-chrome: 30, 30, 30, 0.96;
+
+    --glass-border-light: 255, 255, 255, 0.06;
+    --glass-border-regular: 255, 255, 255, 0.12;
+    --glass-border-strong: 255, 255, 255, 0.18;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.16);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.16);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16), 0 10px 20px rgba(0, 0, 0, 0.20);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.20), 0 20px 40px rgba(0, 0, 0, 0.24);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.24), 0 40px 60px rgba(0, 0, 0, 0.32);
+    --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.32), 0 60px 80px rgba(0, 0, 0, 0.40);
+
+    --gloss-light: inset 0 0.5px 0 rgba(255, 255, 255, 0.1);
+    --gloss-strong: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 211 100% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 3 100% 61%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 211 100% 52%;
+  }
+}
+
+/* ===== 基础样式 Base Styles ===== */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+               "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+input, select, textarea {
+  font-size: calc(16px * var(--interface-scale, 1));
+}
+
+* {
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Liquid Glass 工具类 ===== */
+@layer utilities {
+  .glass-ultra-thin {
+    background: rgba(var(--glass-ultra-thin));
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-light));
+  }
+
+  .glass-thin {
+    background: rgba(var(--glass-thin));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-light));
+    box-shadow: var(--shadow-sm), var(--gloss-light);
+  }
+
+  .glass-regular {
+    background: rgba(var(--glass-regular));
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-regular));
+    box-shadow: var(--shadow-md), var(--gloss-light);
+  }
+
+  .glass-thick {
+    background: rgba(var(--glass-thick));
+    backdrop-filter: blur(60px) saturate(180%);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-strong));
+    box-shadow: var(--shadow-lg), var(--gloss-strong);
+  }
+
+  .glass-chrome {
+    background: rgba(var(--glass-chrome));
+    backdrop-filter: blur(80px) saturate(200%);
+    -webkit-backdrop-filter: blur(80px) saturate(200%);
+    border: 0.5px solid rgba(var(--glass-border-strong));
+    box-shadow: var(--shadow-xl), var(--gloss-strong);
+  }
+
+  .glass-nav {
+    background: rgba(var(--glass-regular));
+    backdrop-filter: blur(50px) saturate(180%);
+    -webkit-backdrop-filter: blur(50px) saturate(180%);
+    border-bottom: 0.5px solid rgba(var(--separator));
+  }
+
+  .glass-sidebar {
+    background: rgba(var(--glass-thick));
+    backdrop-filter: blur(60px) saturate(180%);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    border-right: 0.5px solid rgba(var(--separator));
+  }
+
+  .glass-card {
+    background: rgba(var(--glass-regular));
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-light));
+    box-shadow: var(--shadow-md), var(--gloss-light);
+    border-radius: var(--radius-card);
+  }
+
+  .glass-modal {
+    background: rgba(var(--glass-thick));
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-regular));
+    box-shadow: var(--shadow-xl), var(--gloss-strong);
+    border-radius: var(--radius-modal);
+  }
+
+  .glass-input {
+    background: rgba(var(--tertiary-fill));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid transparent;
+    transition: all var(--duration-fast) var(--ease-smooth);
+  }
+
+  .glass-input:focus {
+    background: rgba(var(--glass-regular));
+    border-color: rgba(var(--apple-blue));
+    box-shadow: 0 0 0 3px rgba(var(--apple-blue), 0.1);
+  }
+
+  .glass-button {
+    background: rgba(var(--glass-thin));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(var(--glass-border-light));
+    box-shadow: var(--shadow-sm), var(--gloss-light);
+    transition: all var(--duration-fast) var(--ease-spring);
+  }
+
+  .glass-button:hover {
+    background: rgba(var(--glass-regular));
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: var(--shadow-md), var(--gloss-strong);
+  }
+
+  .glass-button:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-xs), var(--gloss-light);
+  }
+
+  /* 文字颜色工具类 */
+  .text-label { color: rgba(var(--label)); }
+  .text-secondary-label { color: rgba(var(--secondary-label)); }
+  .text-tertiary-label { color: rgba(var(--tertiary-label)); }
+  .text-quaternary-label { color: rgba(var(--quaternary-label)); }
+  .text-placeholder { color: rgba(var(--placeholder-text)); }
+
+  /* 填充颜色工具类 */
+  .bg-fill { background-color: rgba(var(--fill)); }
+  .bg-secondary-fill { background-color: rgba(var(--secondary-fill)); }
+  .bg-tertiary-fill { background-color: rgba(var(--tertiary-fill)); }
+  .bg-quaternary-fill { background-color: rgba(var(--quaternary-fill)); }
+
+  /* 系统背景工具类 */
+  .bg-system { background-color: rgb(var(--system-background)); }
+  .bg-secondary-system { background-color: rgb(var(--secondary-system-background)); }
+  .bg-tertiary-system { background-color: rgb(var(--tertiary-system-background)); }
+
+  /* 分隔线工具类 */
+  .border-separator { border-color: rgba(var(--separator)); }
+  .border-opaque-separator { border-color: rgb(var(--opaque-separator)); }
+
+  /* 阴影工具类 */
+  .shadow-apple-xs { box-shadow: var(--shadow-xs); }
+  .shadow-apple-sm { box-shadow: var(--shadow-sm); }
+  .shadow-apple-md { box-shadow: var(--shadow-md); }
+  .shadow-apple-lg { box-shadow: var(--shadow-lg); }
+  .shadow-apple-xl { box-shadow: var(--shadow-xl); }
+  .shadow-apple-2xl { box-shadow: var(--shadow-2xl); }
+
+  /* 动画工具类 */
+  .animate-spring { animation-timing-function: var(--ease-spring); }
+  .animate-bounce { animation-timing-function: var(--ease-bounce); }
+  .animate-smooth { animation-timing-function: var(--ease-smooth); }
+  .animate-swift { animation-timing-function: var(--ease-swift); }
+
+  /* 过渡工具类 */
+  .transition-spring { transition-timing-function: var(--ease-spring); }
+  .transition-bounce { transition-timing-function: var(--ease-bounce); }
+  .transition-smooth { transition-timing-function: var(--ease-smooth); }
+  .transition-swift { transition-timing-function: var(--ease-swift); }
+
+  /* 持续时间工具类 */
+  .duration-instant { transition-duration: var(--duration-instant); }
+  .duration-fast { transition-duration: var(--duration-fast); }
+  .duration-normal { transition-duration: var(--duration-normal); }
+  .duration-slow { transition-duration: var(--duration-slow); }
+  .duration-slower { transition-duration: var(--duration-slower); }
+}
+
+/* ===== 动画定义 ===== */
+@layer utilities {
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slide-down { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  @keyframes scale-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+  @keyframes bounce-in { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+  .animate-fade-in { animation: fade-in var(--duration-normal) var(--ease-smooth); }
+  .animate-fade-out { animation: fade-out var(--duration-normal) var(--ease-smooth); }
+  .animate-slide-up { animation: slide-up var(--duration-normal) var(--ease-spring); }
+  .animate-slide-down { animation: slide-down var(--duration-normal) var(--ease-spring); }
+  .animate-scale-in { animation: scale-in var(--duration-normal) var(--ease-spring); }
+  .animate-scale-out { animation: scale-out var(--duration-normal) var(--ease-smooth); }
+  .animate-bounce-in { animation: bounce-in var(--duration-slow) var(--ease-bounce); }
+  .animate-pulse { animation: pulse 2s var(--ease-smooth) infinite; }
+  .animate-shimmer {
+    background: linear-gradient(90deg, rgba(var(--tertiary-fill)) 0%, rgba(var(--secondary-fill)) 50%, rgba(var(--tertiary-fill)) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+/* ===== 无障碍增强 ===== */
+@layer utilities {
+  .focus-visible\:ring-apple:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--apple-blue), 0.5);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ===== 性能优化 ===== */
+@layer utilities {
+  .gpu-accelerated { transform: translateZ(0); will-change: transform; }
+  .contain-layout { contain: layout; }
+  .contain-paint { contain: paint; }
+  .contain-strict { contain: strict; }
+  .scroll-smooth { scroll-behavior: smooth; }
+  .overscroll-contain { overscroll-behavior: contain; }
+}
