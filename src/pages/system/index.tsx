@@ -4,10 +4,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { 
-  Settings, RefreshCw, Globe, Zap, FileText, Shield, RotateCcw, Info, Loader2
+  Settings, RefreshCw, Globe, Zap, FileText, Shield, RotateCcw, Info, Loader2, Package
 } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
 import { configApi } from '@/services/api'
+
+// 前端版本号
+const FRONTEND_VERSION = __APP_VERSION__
 
 function Toggle({ checked, onChange, disabled }: { 
   checked: boolean; onChange: (v: boolean) => void; disabled?: boolean 
@@ -77,6 +80,7 @@ export function SystemPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [latestVersion, setLatestVersion] = useState<string | null>(null)
   const [versionLoading, setVersionLoading] = useState(false)
+  const [hasUpdate, setHasUpdate] = useState(false)
   const [proxyUrl, setProxyUrl] = useState('')
   const [proxyLoading, setProxyLoading] = useState(false)
   const [toggleLoading, setToggleLoading] = useState<Record<string, boolean>>({})
@@ -98,15 +102,26 @@ export function SystemPage() {
   const checkLatestVersion = useCallback(async () => {
     setVersionLoading(true)
     try {
-      const res = await configApi.getLatestVersion()
-      setLatestVersion(res['latest-version'] || null)
+      // 从 GitHub API 获取最新前端版本
+      const res = await fetch('https://api.github.com/repos/ncyxx/cpa-web/releases/latest')
+      if (res.ok) {
+        const data = await res.json()
+        const latest = data.tag_name || null
+        setLatestVersion(latest)
+        // 比较版本
+        if (latest && latest !== `v${FRONTEND_VERSION}`) {
+          setHasUpdate(true)
+        } else {
+          setHasUpdate(false)
+        }
+      }
     } catch (err) { console.error(err) }
     finally { setVersionLoading(false) }
   }, [])
 
   useEffect(() => {
-    if (connectionStatus === 'connected') checkLatestVersion()
-  }, [connectionStatus, checkLatestVersion])
+    checkLatestVersion()
+  }, [])
 
   const handleUpdateProxy = async () => {
     setProxyLoading(true)
@@ -163,12 +178,18 @@ export function SystemPage() {
         <div className="p-6 space-y-6 lg:border-r border-gray-100">
           {/* 版本信息 */}
           <div>
-            <SectionTitle icon={<Info className="w-5 h-5" />} iconBg="bg-violet-500" title="版本信息" description="当前系统版本和更新检查" />
-            <div className="mt-3">
-              <SettingItem icon={<Info className="w-4 h-4 text-violet-600" />} iconBg="bg-violet-50" title="最新版本" description="检查是否有新版本可用" loading={versionLoading}>
+            <SectionTitle icon={<Package className="w-5 h-5" />} iconBg="bg-violet-500" title="版本信息" description="前端面板版本" />
+            <div className="mt-3 space-y-1">
+              <SettingItem icon={<Package className="w-4 h-4 text-violet-600" />} iconBg="bg-violet-50" title="当前版本" description="当前运行的前端版本">
+                <span className="text-sm font-medium text-gray-900">v{FRONTEND_VERSION}</span>
+              </SettingItem>
+              <SettingItem icon={<Info className="w-4 h-4 text-violet-600" />} iconBg="bg-violet-50" title="最新版本" description="GitHub 上的最新版本" loading={versionLoading}>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">{latestVersion || '未知'}</span>
-                  <button onClick={checkLatestVersion} disabled={versionLoading || disableControls}
+                  <span className={`text-sm font-medium ${hasUpdate ? 'text-green-600' : 'text-gray-900'}`}>
+                    {latestVersion || '未知'}
+                  </span>
+                  {hasUpdate && <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">有更新</span>}
+                  <button onClick={checkLatestVersion} disabled={versionLoading}
                     className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50">
                     检查更新
                   </button>
