@@ -2,6 +2,29 @@
 
 CLI Proxy 管理后台前端，基于 React 19 + TypeScript + Tailwind CSS 构建。
 
+## 效果预览
+
+### 仪表盘
+![仪表盘](docs/dashboard.png)
+
+### AI 提供商
+![AI 提供商](docs/ai-providers.png)
+
+### AI 号池
+![AI 号池](docs/ai-pool.png)
+
+### OAuth 认证
+![OAuth](docs/oauth.png)
+
+### 配置管理
+![配置管理](docs/config.png)
+
+### 日志
+![日志](docs/logs.png)
+
+### 系统配置
+![系统配置](docs/system.png)
+
 ## 技术栈
 
 - React 19 + TypeScript
