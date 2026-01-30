@@ -34,9 +34,21 @@ export interface PoolStatus {
   available_quota: number
 }
 
+export interface PoolProviderConfig {
+  target_count?: number
+  replenish_threshold?: number
+  low_quota_threshold?: number
+  concurrency?: number
+  batch_size?: number
+}
+
 export interface PoolConfig {
   enabled?: boolean
   syncInterval?: number
+  providers?: {
+    kiro?: PoolProviderConfig
+    [key: string]: PoolProviderConfig | undefined
+  }
   [key: string]: any
 }
 

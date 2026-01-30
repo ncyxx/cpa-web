@@ -81,6 +81,15 @@ export const configApi = {
   }),
   getLatestVersion: () => apiClient.get<{ 'latest-version': string }>('/latest-version'),
 
+  // Panel update
+  triggerPanelUpdate: () => apiClient.post<{
+    message: string
+    current_version: string
+    latest_version: string
+    updated: boolean
+    error?: string
+  }>('/panel/update'),
+
   getDebug: () => apiClient.get<{ debug: boolean }>('/debug'),
   putDebug: (value: boolean) => apiClient.put('/debug', { value }),
 

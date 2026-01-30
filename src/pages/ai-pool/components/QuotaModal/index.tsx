@@ -32,6 +32,7 @@ interface QuotaModalProps {
   onClose: () => void
   provider: string
   accounts: AuthFile[]
+  loadRates?: Map<string, number>
 }
 
 type QuotaStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -39,12 +40,14 @@ type QuotaStatus = 'idle' | 'loading' | 'success' | 'error'
 interface AccountQuota {
   accountId: string
   accountName: string
+  /** 用于负载率查找的 key（通常是 email） */
+  loadRateKey?: string
   status: QuotaStatus
   error?: string
   data?: CodexQuotaData | GeminiCliBucket[] | AntigravityGroup[] | KiroQuotaData
 }
 
-export function QuotaModal({ isOpen, onClose, provider, accounts }: QuotaModalProps) {
+export function QuotaModal({ isOpen, onClose, provider, accounts, loadRates }: QuotaModalProps) {
   const [quotas, setQuotas] = useState<AccountQuota[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -301,6 +304,8 @@ export function QuotaModal({ isOpen, onClose, provider, accounts }: QuotaModalPr
           return {
             accountId: name,
             accountName: name,
+            // 使用 email 作为负载率查找的 key（与 usage API 的 source 字段匹配）
+            loadRateKey: quota.email || name,
             status: quota.status === 'ok' ? 'success' as const : 'error' as const,
             data: quota,
             error: quota.errorMessage
@@ -459,6 +464,7 @@ export function QuotaModal({ isOpen, onClose, provider, accounts }: QuotaModalPr
                 key={quota.accountId || index} 
                 quota={quota} 
                 provider={providerLower}
+                loadRate={loadRates?.get(quota.loadRateKey || quota.accountName)}
               />
             ))
           )}
@@ -477,7 +483,7 @@ export function QuotaModal({ isOpen, onClose, provider, accounts }: QuotaModalPr
 
 
 // 配额卡片组件
-function QuotaCard({ quota, provider }: { quota: AccountQuota; provider: string }) {
+function QuotaCard({ quota, provider, loadRate }: { quota: AccountQuota; provider: string; loadRate?: number }) {
   if (quota.status === 'loading') {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden w-[320px]">
@@ -515,6 +521,7 @@ function QuotaCard({ quota, provider }: { quota: AccountQuota; provider: string 
     const data = quota.data as KiroQuotaData
     const usagePercent = data.usageLimit > 0 ? Math.round((data.currentUsage / data.usageLimit) * 100) : 0
     const remaining = 100 - usagePercent
+    const actualLoadRate = loadRate ?? 0
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden w-[320px]">
         <div className="px-3 py-2 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-100">
@@ -528,9 +535,10 @@ function QuotaCard({ quota, provider }: { quota: AccountQuota; provider: string 
           </div>
         </div>
         
-        <div className="px-3 py-2">
+        <div className="px-3 py-2 space-y-2">
+          {/* 使用率 */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 w-20 flex-shrink-0">使用量</span>
+            <span className="text-xs text-gray-600 w-14 flex-shrink-0">使用率</span>
             <div className="flex-1" />
             <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
               <div 
@@ -553,7 +561,30 @@ function QuotaCard({ quota, provider }: { quota: AccountQuota; provider: string 
               {data.nextReset ? formatResetTime(data.nextReset) : '-'}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          {/* 负载率 */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 w-14 flex-shrink-0">负载率</span>
+            <div className="flex-1" />
+            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+              <div 
+                className={`h-full rounded-full transition-all ${
+                  actualLoadRate >= 80 ? 'bg-red-500' :
+                  actualLoadRate >= 50 ? 'bg-amber-500' :
+                  'bg-indigo-500'
+                }`}
+                style={{ width: `${Math.min(actualLoadRate, 100)}%` }}
+              />
+            </div>
+            <span className={`text-xs font-medium w-10 text-right flex-shrink-0 ${
+              actualLoadRate >= 80 ? 'text-red-500' :
+              actualLoadRate >= 50 ? 'text-amber-500' :
+              'text-indigo-600'
+            }`}>
+              {actualLoadRate.toFixed(1)}%
+            </span>
+            <span className="text-xs text-gray-400 w-8 flex-shrink-0">-</span>
+          </div>
+          <p className="text-xs text-gray-500">
             {data.currentUsage} / {data.usageLimit}
           </p>
         </div>
