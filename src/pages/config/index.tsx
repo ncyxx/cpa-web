@@ -3,51 +3,9 @@ import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror'
 import { yaml } from '@codemirror/lang-yaml'
 import { search, highlightSelectionMatches } from '@codemirror/search'
 import { ChevronUp, ChevronDown, Search, RefreshCw } from 'lucide-react'
-import { create } from 'zustand'
 import { Button, Input } from '@/components/ui'
 import { useAuthStore } from '@/stores'
 import { configApi } from '@/services/api'
-
-interface ConfigState {
-  content: string
-  loading: boolean
-  initialized: boolean
-  setContent: (content: string) => void
-  setLoading: (loading: boolean) => void
-  setInitialized: (initialized: boolean) => void
-}
-
-const useConfigPageStore = create<ConfigState>((set) => ({
-  content: '',
-  loading: true,
-  initialized: false,
-  setContent: (content) => set({ content }),
-  setLoading: (loading) => set({ loading }),
-  setInitialized: (initialized) => set({ initialized }),
-}))
-
-let isLoading = false
-
-async function preloadConfigData(isRefresh = false) {
-  const store = useConfigPageStore.getState()
-  
-  if (isLoading && !isRefresh) return
-  if (store.initialized && !isRefresh) return
-  
-  isLoading = true
-  store.setLoading(true)
-  
-  try {
-    const data = await configApi.getConfigYAML()
-    store.setContent(data)
-    store.setInitialized(true)
-  } catch (err) {
-    console.error('Failed to load config:', err)
-  } finally {
-    store.setLoading(false)
-    isLoading = false
-  }
-}
 
 export function ConfigPage() {
   const connectionStatus = useAuthStore((state) => state.connectionStatus)

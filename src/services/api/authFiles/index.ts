@@ -29,6 +29,8 @@ export interface AuthFile {
   created_at?: string
   updated_at?: string
   last_refresh?: string
+  // Metadata
+  metadata?: Record<string, unknown>
 }
 
 export interface AuthFilesResponse {
