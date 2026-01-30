@@ -58,3 +58,7 @@ export type {
 export { ampcodeApi } from './ampcode'
 export type { AmpcodeConfig, AmpcodeModelMapping } from './ampcode'
 
+// API Call (proxy)
+export { apiCallApi, getApiCallErrorMessage } from './apiCall'
+export type { ApiCallRequest, ApiCallResult } from './apiCall'
+

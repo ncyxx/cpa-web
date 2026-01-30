@@ -4,7 +4,6 @@
  * 左边：账户状态 | 右边：状态与负载率（进度条格子）
  */
 
-import { Link } from 'react-router-dom'
 import { ChevronRight, CheckCircle, AlertTriangle, XCircle, Crown } from 'lucide-react'
 
 export interface AccountStatus {
@@ -32,9 +31,10 @@ interface PoolStatusCardProps {
   bg: string
   color: string
   headerBg: string
-  link: string
+  link?: string
   data: PoolStatusData
   loading?: boolean
+  onManageClick?: () => void
 }
 
 export function PoolStatusCard({ 
@@ -44,9 +44,9 @@ export function PoolStatusCard({
   bg, 
   color, 
   headerBg, 
-  link, 
   data,
-  loading 
+  loading,
+  onManageClick
 }: PoolStatusCardProps) {
   const { accounts, totalUsage = 0, totalLimit = 0, proCount = 0 } = data
   
@@ -108,12 +108,12 @@ export function PoolStatusCard({
               <p className="text-xs text-gray-500">{sub}</p>
             </div>
           </div>
-          <Link 
-            to={link} 
+          <button 
+            onClick={onManageClick}
             className={`flex items-center text-xs font-medium ${color} hover:opacity-80 cursor-pointer`}
           >
             管理 <ChevronRight className="w-4 h-4" />
-          </Link>
+          </button>
         </div>
       </div>
 
