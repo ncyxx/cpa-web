@@ -39,7 +39,6 @@ export interface PoolProviderConfig {
   replenish_threshold?: number
   low_quota_threshold?: number
   concurrency?: number
-  batch_size?: number
 }
 
 export interface PoolConfig {

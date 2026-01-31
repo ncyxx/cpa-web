@@ -234,7 +234,15 @@ function AccountStatusGrid({ accounts }: { accounts: AccountStatus[] }) {
  */
 function AccountBlock({ account }: { account: AccountStatus }) {
   const getColor = () => {
-    // 只根据负载率显示颜色
+    // 优先根据状态显示颜色
+    if (account.status === 'unhealthy' || account.status === 'disabled') {
+      return '#ef4444' // red-500 - 异常/禁用
+    }
+    if (account.status === 'exhausted') {
+      return '#f97316' // orange-500 - 耗尽
+    }
+    
+    // 健康状态下根据负载率显示颜色
     // 高负载 → 红色，低负载 → 绿色
     const rate = account.loadRate
     if (rate >= 80) return '#ef4444' // red-500

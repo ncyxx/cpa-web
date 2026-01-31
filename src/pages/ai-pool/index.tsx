@@ -29,8 +29,7 @@ export function AIPoolPage() {
         target_count: 100,
         replenish_threshold: 0.9,
         low_quota_threshold: 20,
-        concurrency: 10,
-        batch_size: 20
+        concurrency: 10
       }
     }
   })
@@ -116,7 +115,7 @@ export function AIPoolPage() {
     let status: AccountStatus['status'] = 'healthy'
     if (item.disabled) {
       status = 'disabled'
-    } else if (item.unavailable || item.status === 'error' || item.status === 'invalid') {
+    } else if (item.unavailable || item.status === 'error' || item.status === 'invalid' || item.status === 'banned' || item.status === 'suspended') {
       status = 'unhealthy'
     } else if (item.is_expired || item.status === 'exhausted') {
       status = 'exhausted'
