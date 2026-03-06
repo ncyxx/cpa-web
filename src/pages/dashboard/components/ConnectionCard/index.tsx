@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from 'react'
 import { RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import type { Config } from '@/services/api/config'
 import { configApi } from '@/services/api/config'
-import { useConfigStore } from '@/stores'
+import { useAuthStore, useConfigStore } from '@/stores'
 
 interface ConnectionCardProps {
   connectionStatus: string
@@ -24,7 +24,10 @@ export function ConnectionCard({ connectionStatus, apiBase, serverVersion, confi
   const isConnected = connectionStatus === 'connected'
   const isConnecting = connectionStatus === 'connecting'
   const { updateConfigValue } = useConfigStore()
+  const serverBuildDate = useAuthStore((state) => state.serverBuildDate)
   const [pendingToggles, setPendingToggles] = useState<Set<string>>(new Set())
+  const versionText = serverVersion?.trim().replace(/^[vV]+/, '') || ''
+  const buildDateText = formatBuildDate(serverBuildDate)
 
   const toggleConfig = async (
     key: 'debug' | 'usage-statistics-enabled' | 'logging-to-file' | 'request-log' | 'ws-auth',
@@ -91,9 +94,10 @@ export function ConnectionCard({ connectionStatus, apiBase, serverVersion, confi
               <h2 className="text-base font-semibold text-gray-900">
                 {isConnected ? '已连接' : isConnecting ? '连接中...' : '未连接'}
               </h2>
-              {serverVersion && (
+              {(versionText || buildDateText) && (
                 <span className="px-2 py-0.5 text-xs font-medium text-violet-600 bg-violet-50 rounded-full">
-                  v{serverVersion.trim().replace(/^[vV]+/, '')}
+                  {versionText ? `v${versionText}` : 'v-'}
+                  {buildDateText ? ` · ${buildDateText}` : ''}
                 </span>
               )}
             </div>
@@ -168,6 +172,19 @@ export function ConnectionCard({ connectionStatus, apiBase, serverVersion, confi
       )}
     </div>
   )
+}
+
+function formatBuildDate(input?: string | null): string {
+  const text = String(input || '').trim()
+  if (!text || text.toLowerCase() === 'unknown') return ''
+
+  const date = new Date(text)
+  if (Number.isNaN(date.getTime())) return text
+
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
 }
 
 function ConfigBadge({ label, on, special, onClick, disabled }: {

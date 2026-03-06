@@ -112,10 +112,20 @@ export function useAuthFilesFilter(files: AuthFile[]) {
   const currentPage = Math.min(page, totalPages)
   const pageItems = filteredFiles.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  // 存在的类型
+  // 类型数量统计（用于筛选徽章显示）
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: files.length }
+    files.forEach((f) => {
+      const t = (f.type || '').toLowerCase() || 'unknown'
+      counts[t] = (counts[t] || 0) + 1
+    })
+    return counts
+  }, [files])
+
+  // 实际存在的类型
   const existingTypes = useMemo(() => {
     const types = new Set<string>(['all'])
-    files.forEach(f => {
+    files.forEach((f) => {
       const t = (f.type || '').toLowerCase()
       if (t) types.add(t)
     })
@@ -130,7 +140,8 @@ export function useAuthFilesFilter(files: AuthFile[]) {
     pageItems,
     totalPages,
     currentPage,
-    existingTypes
+    existingTypes,
+    typeCounts
   }
 }
 
@@ -146,6 +157,7 @@ export function useAuthFilesActions(
 ) {
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [statusUpdating, setStatusUpdating] = useState<Set<string>>(new Set())
 
   // 上传文件
   const handleUpload = useCallback(async (fileList: FileList | null) => {
@@ -184,6 +196,81 @@ export function useAuthFilesActions(
       setFiles(prev => prev.filter(f => f.name !== name))
     } catch {
       alert('删除失败')
+    } finally {
+      setDeleting(null)
+    }
+  }, [setFiles])
+
+  // 开启/禁用账号配置
+  const handleSetDisabled = useCallback(async (name: string, disabled: boolean, options?: { sync?: boolean }) => {
+    const fileName = String(name || '').trim()
+    if (!fileName) return false
+
+    setStatusUpdating((prev) => {
+      const next = new Set(prev)
+      next.add(fileName)
+      return next
+    })
+
+    try {
+      await authFilesApi.setDisabled(fileName, disabled)
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.name !== fileName
+            ? f
+            : {
+                ...f,
+                disabled,
+                status: disabled ? 'disabled' : 'active',
+                status_message: disabled ? 'disabled via management API' : ''
+              }
+        )
+      )
+      // Re-fetch from backend to ensure frontend state fully matches persisted auth manager state.
+      if (options?.sync !== false) {
+        await loadFiles(true)
+      }
+      return true
+    } catch {
+      alert('账号开关更新失败')
+      return false
+    } finally {
+      setStatusUpdating((prev) => {
+        const next = new Set(prev)
+        next.delete(fileName)
+        return next
+      })
+    }
+  }, [setFiles, loadFiles])
+
+  // 删除选中项
+  const handleDeleteSelected = useCallback(async (names: string[]) => {
+    if (!names.length) return false
+    const targetNames = Array.from(new Set(names))
+    const confirmMsg = targetNames.length === 1
+      ? `确定要删除 "${targetNames[0]}" 吗？`
+      : `确定要删除选中的 ${targetNames.length} 个文件吗？`
+    if (!confirm(confirmMsg)) return false
+
+    setDeleting('selected')
+    let failed = 0
+    try {
+      for (const name of targetNames) {
+        try {
+          await authFilesApi.deleteFile(name)
+        } catch {
+          failed++
+        }
+      }
+      const nameSet = new Set(targetNames)
+      setFiles(prev => prev.filter(f => !nameSet.has(f.name)))
+      if (failed > 0) {
+        alert(`删除完成，失败 ${failed} 个`)
+      }
+      return true
+    } catch {
+      alert('删除失败')
+      return false
     } finally {
       setDeleting(null)
     }
@@ -234,7 +321,17 @@ export function useAuthFilesActions(
     }
   }, [])
 
-  return { uploading, deleting, handleUpload, handleDelete, handleDeleteFiltered, handleDownload }
+  return {
+    uploading,
+    deleting,
+    statusUpdating,
+    handleUpload,
+    handleDelete,
+    handleSetDisabled,
+    handleDeleteSelected,
+    handleDeleteFiltered,
+    handleDownload
+  }
 }
 
 /**

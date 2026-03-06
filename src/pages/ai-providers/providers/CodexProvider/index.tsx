@@ -1,12 +1,12 @@
 /**
  * Codex 提供商配置页
- * 字段：apiKey, prefix, baseUrl, proxyUrl, headers, models, excludedModels
+ * 字段：apiKey, priority, prefix, baseUrl, websockets, proxyUrl, headers, models, excludedModels
  */
 
 import { useState, useCallback } from 'react'
 import { Plus, RefreshCw, X } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
-import { providersApi, type ProviderKeyConfig } from '@/services/api/providers'
+import { providersApi, normalizeProviderKeyConfig, type ProviderKeyConfig } from '@/services/api/providers'
 import { PROVIDER_CONFIGS } from '../../constants'
 import { 
   KeyItem, 
@@ -16,8 +16,10 @@ import {
 
 interface CodexFormState {
   apiKey: string
+  priority: string
   prefix: string
   baseUrl: string
+  websockets: boolean
   proxyUrl: string
   headers: HeaderEntry[]
   models: ModelEntry[]
@@ -26,8 +28,10 @@ interface CodexFormState {
 
 const emptyForm: CodexFormState = {
   apiKey: '',
+  priority: '',
   prefix: '',
   baseUrl: '',
+  websockets: false,
   proxyUrl: '',
   headers: [],
   models: [],
@@ -40,7 +44,10 @@ export function CodexProvider() {
   const fetchConfig = useConfigStore((state) => state.fetchConfig)
   const disableControls = connectionStatus !== 'connected'
 
-  const keys = config?.codexApiKeys || []
+  const rawKeys = ((config as any)?.codexApiKeys ?? config?.['codex-api-key'] ?? []) as any[]
+  const keys = rawKeys
+    .map((item) => normalizeProviderKeyConfig(item))
+    .filter(Boolean) as ProviderKeyConfig[]
   const [refreshing, setRefreshing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -64,8 +71,10 @@ export function CodexProvider() {
       const item = keys[index]
       setForm({
         apiKey: item.apiKey || '',
+        priority: item.priority !== undefined ? String(item.priority) : '',
         prefix: item.prefix || '',
         baseUrl: item.baseUrl || '',
+        websockets: Boolean(item.websockets),
         proxyUrl: item.proxyUrl || '',
         headers: headersToEntries(item.headers),
         models: modelsToEntries(item.models),
@@ -87,12 +96,20 @@ export function CodexProvider() {
   const handleSave = async () => {
     if (!form.apiKey.trim()) return
 
+    const priorityValue = form.priority.trim()
+    const parsedPriority = priorityValue === '' ? undefined : Number(priorityValue)
+    if (parsedPriority !== undefined && !Number.isFinite(parsedPriority)) return
+
     setSaving(true)
     try {
+      const base = editingIndex !== null ? keys[editingIndex] : undefined
       const payload: ProviderKeyConfig = {
+        ...(base || {}),
         apiKey: form.apiKey.trim(),
+        priority: parsedPriority,
         prefix: form.prefix.trim() || undefined,
         baseUrl: form.baseUrl.trim() || undefined,
+        websockets: form.websockets,
         proxyUrl: form.proxyUrl.trim() || undefined,
         headers: entriesToHeaders(form.headers),
         models: entriesToModels(form.models),
@@ -236,7 +253,11 @@ export function CodexProvider() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <input type="number" placeholder="0" value={form.priority} onChange={(e) => setForm(prev => ({ ...prev, priority: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" />
+                </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Prefix</label>
                   <input type="text" placeholder="模型前缀" value={form.prefix} onChange={(e) => setForm(prev => ({ ...prev, prefix: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" />
@@ -246,6 +267,17 @@ export function CodexProvider() {
                   <input type="text" placeholder="自定义 API 地址" value={form.baseUrl} onChange={(e) => setForm(prev => ({ ...prev, baseUrl: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" />
                 </div>
               </div>
+
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={form.websockets}
+                  onChange={(e) => setForm(prev => ({ ...prev, websockets: e.target.checked }))}
+                  disabled={saving}
+                  className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                启用 Websockets
+              </label>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Proxy URL</label>

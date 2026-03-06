@@ -1,12 +1,12 @@
 /**
  * Claude 提供商配置页
- * 字段：apiKey, prefix, baseUrl, proxyUrl, headers, models, excludedModels
+ * 字段：apiKey, priority, prefix, baseUrl, proxyUrl, headers, models, excludedModels
  */
 
 import { useState, useCallback } from 'react'
 import { Plus, RefreshCw, X } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
-import { providersApi, type ProviderKeyConfig } from '@/services/api/providers'
+import { providersApi, normalizeProviderKeyConfig, type ProviderKeyConfig } from '@/services/api/providers'
 import { PROVIDER_CONFIGS } from '../../constants'
 import { 
   KeyItem, 
@@ -16,6 +16,7 @@ import {
 
 interface ClaudeFormState {
   apiKey: string
+  priority: string
   prefix: string
   baseUrl: string
   proxyUrl: string
@@ -26,6 +27,7 @@ interface ClaudeFormState {
 
 const emptyForm: ClaudeFormState = {
   apiKey: '',
+  priority: '',
   prefix: '',
   baseUrl: '',
   proxyUrl: '',
@@ -40,7 +42,10 @@ export function ClaudeProvider() {
   const fetchConfig = useConfigStore((state) => state.fetchConfig)
   const disableControls = connectionStatus !== 'connected'
 
-  const keys = config?.claudeApiKeys || []
+  const rawKeys = ((config as any)?.claudeApiKeys ?? config?.['claude-api-key'] ?? []) as any[]
+  const keys = rawKeys
+    .map((item) => normalizeProviderKeyConfig(item))
+    .filter(Boolean) as ProviderKeyConfig[]
   const [refreshing, setRefreshing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -64,6 +69,7 @@ export function ClaudeProvider() {
       const item = keys[index]
       setForm({
         apiKey: item.apiKey || '',
+        priority: item.priority !== undefined ? String(item.priority) : '',
         prefix: item.prefix || '',
         baseUrl: item.baseUrl || '',
         proxyUrl: item.proxyUrl || '',
@@ -87,10 +93,17 @@ export function ClaudeProvider() {
   const handleSave = async () => {
     if (!form.apiKey.trim()) return
 
+    const priorityValue = form.priority.trim()
+    const parsedPriority = priorityValue === '' ? undefined : Number(priorityValue)
+    if (parsedPriority !== undefined && !Number.isFinite(parsedPriority)) return
+
     setSaving(true)
     try {
+      const base = editingIndex !== null ? keys[editingIndex] : undefined
       const payload: ProviderKeyConfig = {
+        ...(base || {}),
         apiKey: form.apiKey.trim(),
+        priority: parsedPriority,
         prefix: form.prefix.trim() || undefined,
         baseUrl: form.baseUrl.trim() || undefined,
         proxyUrl: form.proxyUrl.trim() || undefined,
@@ -229,7 +242,11 @@ export function ClaudeProvider() {
                 <input type="text" placeholder="输入 Claude API Key..." value={form.apiKey} onChange={(e) => setForm(prev => ({ ...prev, apiKey: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <input type="number" placeholder="0" value={form.priority} onChange={(e) => setForm(prev => ({ ...prev, priority: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+                </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Prefix</label>
                   <input type="text" placeholder="模型前缀" value={form.prefix} onChange={(e) => setForm(prev => ({ ...prev, prefix: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" />

@@ -1,11 +1,11 @@
 /**
  * OAuth 登录模态框
- * 支持 Project ID (Gemini) 和认证方式选择 (Kiro)
+ * 支持 Project ID (Gemini)
  */
 
 import { useEffect } from 'react'
 import { X, ExternalLink, Copy, Loader2, CheckCircle, XCircle } from 'lucide-react'
-import { type ProviderConfig, KIRO_AUTH_METHODS, type KiroAuthMethod } from '../../constants'
+import { type ProviderConfig } from '../../constants'
 import type { ProviderState } from '../../hooks'
 
 interface OAuthModalProps {
@@ -14,10 +14,7 @@ interface OAuthModalProps {
   provider: ProviderConfig | null
   state: ProviderState
   onProjectIdChange: (value: string) => void
-  onAuthMethodChange: (method: KiroAuthMethod) => void
-  onCallbackUrlChange: (value: string) => void
-  onSubmitCallback: () => void
-  onStartAuth: (method?: KiroAuthMethod) => void
+  onStartAuth: () => void
 }
 
 export function OAuthModal({
@@ -26,9 +23,6 @@ export function OAuthModal({
   provider,
   state,
   onProjectIdChange,
-  onAuthMethodChange,
-  onCallbackUrlChange,
-  onSubmitCallback,
   onStartAuth
 }: OAuthModalProps) {
   useEffect(() => {
@@ -45,6 +39,30 @@ export function OAuthModal({
     }
   }, [isOpen, onClose])
 
+  useEffect(() => {
+    if (!isOpen || !provider) return
+    if (!provider.requiresProjectId) return
+    if (state.url || state.polling || state.status === 'waiting' || state.status === 'success') return
+    if (provider.requiresProjectId && !state.projectId?.trim()) return
+    if (state.status !== 'idle') return
+
+    const timer = window.setTimeout(() => {
+      onStartAuth()
+    }, 600)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [
+    isOpen,
+    provider,
+    state.url,
+    state.polling,
+    state.status,
+    state.projectId,
+    onStartAuth
+  ])
+
   if (!isOpen || !provider) return null
 
   const copyLink = () => {
@@ -54,11 +72,6 @@ export function OAuthModal({
   const openLink = () => {
     if (state.url) window.open(state.url, '_blank', 'noopener,noreferrer')
   }
-
-  // 是否需要先输入/选择
-  const needsProjectId = provider.requiresProjectId && !state.url
-  const needsAuthMethod = provider.requiresAuthMethod && !state.url
-  const showStartButton = (needsProjectId || needsAuthMethod || (!state.url && !state.polling)) && !state.url
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -116,45 +129,10 @@ export function OAuthModal({
                 placeholder="Google Cloud Project ID"
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 focus:bg-white transition-all"
               />
-              <p className="text-xs text-gray-400">在 Google Cloud Console 中获取</p>
+              <p className="text-xs text-gray-400">
+                在 Google Cloud Console 中获取，填写后将自动开始登录
+              </p>
             </div>
-          )}
-
-          {/* Auth Method (Kiro) */}
-          {provider.requiresAuthMethod && !state.url && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">选择认证方式</label>
-              <div className="grid grid-cols-3 gap-3">
-                {KIRO_AUTH_METHODS.map(method => (
-                  <button
-                    key={method.id}
-                    onClick={() => onAuthMethodChange(method.id)}
-                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                      state.authMethod === method.id
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {method.name}
-                  </button>
-                ))}
-              </div>
-              {state.error && state.status === 'idle' && (
-                <p className="text-xs text-red-500">{state.error}</p>
-              )}
-            </div>
-          )}
-
-          {/* Start Button */}
-          {showStartButton && (
-            <button
-              onClick={() => onStartAuth(state.authMethod)}
-              disabled={state.polling || (provider.requiresProjectId && !state.projectId?.trim()) || (provider.requiresAuthMethod && !state.authMethod)}
-              className="w-full px-4 py-3 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              {state.polling && <Loader2 className="w-4 h-4 animate-spin" />}
-              开始登录
-            </button>
           )}
 
           {/* Auth URL */}
@@ -180,43 +158,6 @@ export function OAuthModal({
                   </button>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Callback URL */}
-          {provider.supportsCallback && state.url && state.status !== 'success' && (
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-700">回调 URL</p>
-                <p className="text-xs text-gray-500 mt-1">登录完成后，将浏览器地址栏的 URL 粘贴到这里</p>
-              </div>
-              <input
-                type="text"
-                value={state.callbackUrl || ''}
-                onChange={e => onCallbackUrlChange(e.target.value)}
-                placeholder="粘贴登录后的回调 URL"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 focus:bg-white transition-all"
-              />
-              <button
-                onClick={onSubmitCallback}
-                disabled={state.callbackSubmitting || !state.callbackUrl?.trim()}
-                className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                {state.callbackSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                提交回调
-              </button>
-              {state.callbackStatus === 'success' && (
-                <div className="flex items-center gap-2 text-green-600 text-sm">
-                  <CheckCircle className="w-4 h-4" />
-                  回调提交成功
-                </div>
-              )}
-              {state.callbackStatus === 'error' && (
-                <div className="flex items-center gap-2 text-red-500 text-sm">
-                  <XCircle className="w-4 h-4" />
-                  {state.callbackError || '提交失败'}
-                </div>
-              )}
             </div>
           )}
 

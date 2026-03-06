@@ -5,14 +5,14 @@
 
 import { useState } from 'react'
 import { Shield } from 'lucide-react'
-import { PROVIDERS, type ProviderConfig, type KiroAuthMethod } from './constants'
+import { PROVIDERS, type ProviderConfig } from './constants'
 import { useOAuthProviders, useIFlowCookie, useVertexImport } from './hooks'
 import { ProviderCard, VertexCard, IFlowCookieCard, OAuthModal, VertexModal, IFlowModal } from './components'
 
 type ModalType = 'oauth' | 'vertex' | 'iflow' | null
 
 export function OAuthPage() {
-  const { getState, startAuth, submitCallback, setProjectId, setAuthMethod, setCallbackUrl } = useOAuthProviders()
+  const { getState, startAuth, setProjectId } = useOAuthProviders()
   const iflow = useIFlowCookie()
   const vertex = useVertexImport()
 
@@ -22,15 +22,14 @@ export function OAuthPage() {
   const handleOpenOAuthModal = (provider: ProviderConfig) => {
     setActiveProvider(provider)
     setModalType('oauth')
-    // 如果不需要 Project ID 和认证方式选择，直接开始认证
-    if (!provider.requiresProjectId && !provider.requiresAuthMethod) {
+    if (!provider.requiresProjectId) {
       startAuth(provider.id)
     }
   }
 
-  const handleStartAuth = (method?: KiroAuthMethod) => {
+  const handleStartAuth = () => {
     if (activeProvider) {
-      startAuth(activeProvider.id, method)
+      startAuth(activeProvider.id)
     }
   }
 
@@ -88,9 +87,6 @@ export function OAuthPage() {
         provider={activeProvider}
         state={activeProvider ? getState(activeProvider.id) : { status: 'idle', polling: false }}
         onProjectIdChange={(v) => activeProvider && setProjectId(activeProvider.id, v)}
-        onAuthMethodChange={(m) => activeProvider && setAuthMethod(activeProvider.id, m)}
-        onCallbackUrlChange={(v) => activeProvider && setCallbackUrl(activeProvider.id, v)}
-        onSubmitCallback={() => activeProvider && submitCallback(activeProvider.id)}
         onStartAuth={handleStartAuth}
       />
 

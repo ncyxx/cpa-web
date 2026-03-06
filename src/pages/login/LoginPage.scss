@@ -7,7 +7,9 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .login-page__background {
@@ -371,6 +373,7 @@
 @media (max-width: 480px) {
   .login-page {
     padding: 1rem;
+    align-items: flex-start;
   }
 
   .login-form {
@@ -384,6 +387,16 @@
 
   .login-form__subtitle {
     font-size: 0.875rem;
+  }
+}
+
+@media (max-height: 760px) {
+  .login-page {
+    align-items: flex-start;
+  }
+
+  .login-page__container {
+    margin: 1rem 0;
   }
 }
 

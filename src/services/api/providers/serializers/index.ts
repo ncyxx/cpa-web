@@ -30,8 +30,10 @@ export const serializeApiKeyEntry = (entry: ApiKeyEntry) => {
 
 export const serializeProviderKey = (config: ProviderKeyConfig) => {
   const payload: Record<string, any> = { 'api-key': config.apiKey }
+  if (config.priority !== undefined) payload.priority = Number(config.priority)
   if (config.prefix?.trim()) payload.prefix = config.prefix.trim()
   if (config.baseUrl) payload['base-url'] = config.baseUrl
+  if (config.websockets !== undefined) payload.websockets = Boolean(config.websockets)
   if (config.proxyUrl) payload['proxy-url'] = config.proxyUrl
   const headers = serializeHeaders(config.headers)
   if (headers) payload.headers = headers
@@ -40,13 +42,18 @@ export const serializeProviderKey = (config: ProviderKeyConfig) => {
   if (config.excludedModels && config.excludedModels.length) {
     payload['excluded-models'] = config.excludedModels
   }
+  if (config.cloak && typeof config.cloak === 'object') payload.cloak = config.cloak
   return payload
 }
 
 export const serializeGeminiKey = (config: GeminiKeyConfig) => {
   const payload: Record<string, any> = { 'api-key': config.apiKey }
+  if (config.priority !== undefined) payload.priority = Number(config.priority)
   if (config.prefix?.trim()) payload.prefix = config.prefix.trim()
   if (config.baseUrl) payload['base-url'] = config.baseUrl
+  if (config.proxyUrl) payload['proxy-url'] = config.proxyUrl
+  const models = serializeModelAliases(config.models)
+  if (models && models.length) payload.models = models
   const headers = serializeHeaders(config.headers)
   if (headers) payload.headers = headers
   if (config.excludedModels && config.excludedModels.length) {

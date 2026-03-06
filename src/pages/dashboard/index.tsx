@@ -8,7 +8,7 @@ import { useState, useMemo, useRef, useCallback } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useConfigStore } from '@/stores'
 import { ConnectionCard, ModelStatsCard, ModelSeriesModal, StatsContainer } from './components'
-import { useDashboardData } from './hooks'
+import { useDashboardData, getModelSeries } from './hooks'
 import { MODEL_SERIES_CONFIG, MODEL_SERIES_ORDER } from './models'
 
 export function DashboardPage() {
@@ -105,6 +105,26 @@ export function DashboardPage() {
     }
     return data
   }, [usageStats])
+
+  // 动态模型列表：直接来自后端 /usage 的模型维度统计，不依赖前端写死模型名
+  const seriesModels = useMemo(() => {
+    const grouped: Record<string, { name: string; requests: number }[]> = {}
+
+    Object.entries(modelUsageData).forEach(([modelName, stats]) => {
+      const series = getModelSeries(modelName)
+      if (!grouped[series]) grouped[series] = []
+      grouped[series].push({ name: modelName, requests: stats.requests })
+    })
+
+    const result: Record<string, string[]> = {}
+    Object.entries(grouped).forEach(([series, models]) => {
+      result[series] = models
+        .sort((a, b) => b.requests - a.requests || a.name.localeCompare(b.name))
+        .map((item) => item.name)
+    })
+
+    return result
+  }, [modelUsageData])
 
   // 打开模态框
   const handleDetailClick = (seriesKey: string) => {
@@ -210,7 +230,7 @@ export function DashboardPage() {
                     color={cfg.color}
                     headerBg={cfg.headerBg}
                     data={data}
-                    models={cfg.models}
+                    models={seriesModels[key] || []}
                     onDetailClick={() => handleDetailClick(key)}
                   />
                 )
@@ -245,7 +265,7 @@ export function DashboardPage() {
           icon={selectedConfig.icon}
           bg={selectedConfig.bg}
           color={selectedConfig.color}
-          models={selectedConfig.models || []}
+          models={(selectedSeries && seriesModels[selectedSeries]) || []}
           usageData={modelUsageData}
         />
       )}

@@ -1,12 +1,12 @@
 /**
  * OpenAI 兼容提供商配置页
- * 字段：name, baseUrl, prefix, headers, apiKeyEntries, models, testModel
+ * 字段：name, baseUrl, priority, prefix, headers, apiKeyEntries, models, testModel
  */
 
 import { useState, useCallback } from 'react'
 import { Plus, RefreshCw, X, Trash2, Pencil, Copy, Check } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
-import { providersApi, type OpenAIProviderConfig } from '@/services/api/providers'
+import { providersApi, normalizeOpenAIProvider, type OpenAIProviderConfig } from '@/services/api/providers'
 import { PROVIDER_CONFIGS } from '../../constants'
 import { 
   HeadersInput, headersToEntries, entriesToHeaders, type HeaderEntry,
@@ -22,6 +22,7 @@ interface ApiKeyEntryForm {
 interface OpenAIFormState {
   name: string
   baseUrl: string
+  priority: string
   prefix: string
   headers: HeaderEntry[]
   apiKeyEntries: ApiKeyEntryForm[]
@@ -34,6 +35,7 @@ const emptyApiKeyEntry: ApiKeyEntryForm = { apiKey: '', proxyUrl: '', headers: [
 const emptyForm: OpenAIFormState = {
   name: '',
   baseUrl: '',
+  priority: '',
   prefix: '',
   headers: [],
   apiKeyEntries: [{ ...emptyApiKeyEntry }],
@@ -47,7 +49,10 @@ export function OpenAIProvider() {
   const fetchConfig = useConfigStore((state) => state.fetchConfig)
   const disableControls = connectionStatus !== 'connected'
 
-  const providers = config?.openaiCompatibility || []
+  const rawProviders = ((config as any)?.openaiCompatibility ?? config?.['openai-compatibility'] ?? []) as any[]
+  const providers = rawProviders
+    .map((item) => normalizeOpenAIProvider(item))
+    .filter(Boolean) as OpenAIProviderConfig[]
   const [refreshing, setRefreshing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -72,6 +77,7 @@ export function OpenAIProvider() {
       setForm({
         name: item.name || '',
         baseUrl: item.baseUrl || '',
+        priority: item.priority !== undefined ? String(item.priority) : '',
         prefix: item.prefix || '',
         headers: headersToEntries(item.headers),
         apiKeyEntries: (item.apiKeyEntries || []).map((e: { apiKey?: string; proxyUrl?: string; headers?: Record<string, string> }) => ({
@@ -98,11 +104,18 @@ export function OpenAIProvider() {
   const handleSave = async () => {
     if (!form.name.trim() || !form.baseUrl.trim()) return
 
+    const priorityValue = form.priority.trim()
+    const parsedPriority = priorityValue === '' ? undefined : Number(priorityValue)
+    if (parsedPriority !== undefined && !Number.isFinite(parsedPriority)) return
+
     setSaving(true)
     try {
+      const base = editingIndex !== null ? providers[editingIndex] : undefined
       const payload: OpenAIProviderConfig = {
+        ...(base || {}),
         name: form.name.trim(),
         baseUrl: form.baseUrl.trim(),
+        priority: parsedPriority,
         prefix: form.prefix.trim() || undefined,
         headers: entriesToHeaders(form.headers),
         apiKeyEntries: form.apiKeyEntries
@@ -233,10 +246,14 @@ export function OpenAIProvider() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">名称 *</label>
                   <input type="text" placeholder="提供商名称" value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <input type="number" placeholder="0" value={form.priority} onChange={(e) => setForm(prev => ({ ...prev, priority: e.target.value }))} disabled={saving} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Prefix</label>

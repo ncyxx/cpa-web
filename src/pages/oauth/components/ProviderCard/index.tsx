@@ -11,7 +11,6 @@ import iconClaude from '@/assets/icons/claude.svg'
 import iconGemini from '@/assets/icons/gemini.svg'
 import iconOpenaiLight from '@/assets/icons/openai-light.svg'
 import iconQwen from '@/assets/icons/qwen.svg'
-import iconKiro from '@/assets/icons/kiro.svg'
 import iconIflow from '@/assets/icons/iflow.svg'
 import iconAntigravity from '@/assets/icons/antigravity.svg'
 
@@ -23,7 +22,6 @@ const ICON_MAP: Record<string, string> = {
   gemini: iconGemini,
   qwen: iconQwen,
   iflow: iconIflow,
-  kiro: iconKiro,
 }
 
 interface ProviderCardProps {

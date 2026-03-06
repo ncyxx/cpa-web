@@ -3,15 +3,17 @@
  * 横向Tab切换模型系列，点击显示对应模型列表
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { X, DollarSign } from 'lucide-react'
 import { MODEL_SERIES_CONFIG, MODEL_SERIES_ORDER } from '../../models/seriesConfig'
 import { loadModelPrices, saveModelPrices, type ModelPrice } from '@/utils/usage'
+import { getModelSeries } from '../../hooks'
 
 interface ModelPricePanelProps {
   open: boolean
   onClose: () => void
   onSave?: () => void
+  seriesModels?: Record<string, string[]>
 }
 
 // 单个模型价格输入 - 简洁行样式，自动保存
@@ -95,7 +97,7 @@ function ModelPriceInput({
   )
 }
 
-export function ModelPricePanel({ open, onClose, onSave }: ModelPricePanelProps) {
+export function ModelPricePanel({ open, onClose, onSave, seriesModels = {} }: ModelPricePanelProps) {
   const [prices, setPrices] = useState<Record<string, ModelPrice>>({})
   const [activeSeries, setActiveSeries] = useState<string>(MODEL_SERIES_ORDER[0])
 
@@ -137,8 +139,47 @@ export function ModelPricePanel({ open, onClose, onSave }: ModelPricePanelProps)
   }, [onSave])
 
   const configuredTotal = Object.values(prices).filter(p => p.prompt > 0 || p.completion > 0).length
-  const activeConfig = MODEL_SERIES_CONFIG[activeSeries]
-  const activeModels = activeConfig?.models || []
+  const resolvedSeriesModels = useMemo(() => {
+    const merged: Record<string, string[]> = {}
+
+    Object.entries(seriesModels).forEach(([series, models]) => {
+      const list = Array.isArray(models) ? models : []
+      if (!merged[series]) merged[series] = []
+      list.forEach((model) => {
+        const name = String(model || '').trim()
+        if (!name) return
+        if (!merged[series].includes(name)) {
+          merged[series].push(name)
+        }
+      })
+    })
+
+    Object.keys(prices).forEach((model) => {
+      const name = String(model || '').trim()
+      if (!name) return
+      const series = getModelSeries(name)
+      if (!merged[series]) merged[series] = []
+      if (!merged[series].includes(name)) {
+        merged[series].push(name)
+      }
+    })
+
+    return merged
+  }, [prices, seriesModels])
+
+  const availableSeriesKeys = useMemo(
+    () => MODEL_SERIES_ORDER.filter((key) => (resolvedSeriesModels[key]?.length ?? 0) > 0),
+    [resolvedSeriesModels]
+  )
+
+  useEffect(() => {
+    if (availableSeriesKeys.length === 0) return
+    if (!availableSeriesKeys.includes(activeSeries)) {
+      setActiveSeries(availableSeriesKeys[0])
+    }
+  }, [activeSeries, availableSeriesKeys])
+
+  const activeModels = resolvedSeriesModels[activeSeries] || []
 
   if (!open) return null
 
@@ -172,11 +213,13 @@ export function ModelPricePanel({ open, onClose, onSave }: ModelPricePanelProps)
 
         {/* 横向Tab菜单 - 两行排列 */}
         <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+          {availableSeriesKeys.length > 0 ? (
           <div className="grid grid-cols-6 gap-1.5">
-            {MODEL_SERIES_ORDER.map(seriesKey => {
+            {availableSeriesKeys.map(seriesKey => {
               const config = MODEL_SERIES_CONFIG[seriesKey]
-              if (!config || !config.models?.length) return null
-              const count = config.models.filter(m => prices[m] && (prices[m].prompt > 0 || prices[m].completion > 0)).length
+              if (!config) return null
+              const models = resolvedSeriesModels[seriesKey] || []
+              const count = models.filter(m => prices[m] && (prices[m].prompt > 0 || prices[m].completion > 0)).length
               const isActive = activeSeries === seriesKey
               
               return (
@@ -204,6 +247,11 @@ export function ModelPricePanel({ open, onClose, onSave }: ModelPricePanelProps)
               )
             })}
           </div>
+          ) : (
+            <div className="text-center py-2 text-sm text-gray-500">
+              暂无后端模型数据，请先产生请求后再设置价格
+            </div>
+          )}
         </div>
 
         {/* 表头 - 固定不滚动 */}

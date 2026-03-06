@@ -20,18 +20,24 @@ export interface ApiKeyEntry {
 
 export interface ProviderKeyConfig {
   apiKey: string
+  priority?: number
   prefix?: string
   baseUrl?: string
+  websockets?: boolean
   proxyUrl?: string
   headers?: Record<string, string>
   models?: ModelAlias[]
   excludedModels?: string[]
+  cloak?: Record<string, any>
 }
 
 export interface GeminiKeyConfig {
   apiKey: string
+  priority?: number
   prefix?: string
   baseUrl?: string
+  proxyUrl?: string
+  models?: ModelAlias[]
   headers?: Record<string, string>
   excludedModels?: string[]
 }
@@ -49,7 +55,7 @@ export interface OpenAIProviderConfig {
 
 // ============ Unified Provider Types ============
 
-export type ProviderType = 'kiro' | 'gemini' | 'codex' | 'claude' | 'openai' | 'qwen' | 'copilot' | 'iflow'
+export type ProviderType = 'gemini' | 'codex' | 'claude' | 'openai' | 'qwen' | 'copilot' | 'iflow'
 
 export type ProviderStatus = 'active' | 'healthy' | 'unhealthy' | 'exhausted' | 'expired' | 'error'
 

@@ -55,7 +55,7 @@ export function MainLayout({ navItems, currentUser, onLogout }: MainLayoutProps)
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden p-4 lg:p-8">
+        <main className="touch-scroll flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
           <div className="max-w-[1600px] mx-auto space-y-8 animate-fade-in-up">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 lg:mb-8 gap-4">
               <div className="hidden lg:block">

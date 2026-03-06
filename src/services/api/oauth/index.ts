@@ -4,9 +4,7 @@
 
 import { apiClient } from '../client'
 
-export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'qwen' | 'iflow' | 'kiro'
-
-export type KiroAuthMethod = 'google' | 'github' | 'aws'
+export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'qwen' | 'iflow'
 
 export interface OAuthUrlResponse {
   url: string
@@ -36,22 +34,16 @@ export interface VertexImportResponse {
 }
 
 const WEBUI_SUPPORTED: OAuthProvider[] = ['codex', 'anthropic', 'antigravity', 'gemini-cli', 'iflow']
-const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
-  'gemini-cli': 'gemini'
-}
 
 export const oauthApi = {
   // 获取 OAuth 登录 URL
-  startAuth: (provider: OAuthProvider, options?: { projectId?: string; method?: KiroAuthMethod }) => {
+  startAuth: (provider: OAuthProvider, options?: { projectId?: string }) => {
     const params: Record<string, string | boolean> = {}
     if (WEBUI_SUPPORTED.includes(provider)) {
       params.is_webui = true
     }
     if (provider === 'gemini-cli' && options?.projectId) {
       params.project_id = options.projectId
-    }
-    if (provider === 'kiro' && options?.method) {
-      params.method = options.method
     }
     return apiClient.get<OAuthUrlResponse>(`/${provider}-auth-url`, {
       params: Object.keys(params).length ? params : undefined
@@ -61,15 +53,6 @@ export const oauthApi = {
   // 获取认证状态
   getAuthStatus: (state: string) =>
     apiClient.get<AuthStatusResponse>('/get-auth-status', { params: { state } }),
-
-  // 提交回调 URL
-  submitCallback: (provider: OAuthProvider, redirectUrl: string) => {
-    const callbackProvider = CALLBACK_PROVIDER_MAP[provider] ?? provider
-    return apiClient.post('/oauth-callback', {
-      provider: callbackProvider,
-      redirect_url: redirectUrl
-    })
-  },
 
   // iFlow Cookie 认证
   iflowCookieAuth: (cookie: string) =>

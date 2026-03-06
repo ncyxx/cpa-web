@@ -36,4 +36,4 @@ export const TYPE_LABELS: Record<string, string> = {
 }
 
 // 分页大小
-export const PAGE_SIZE = 12
+export const PAGE_SIZE = 6

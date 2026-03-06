@@ -4,7 +4,6 @@ import { MainLayout, type NavItem } from '@/components/layout'
 import { ToastProvider } from '@/components/ui'
 import { useAuthStore, useConfigStore } from '@/stores'
 import { preloadDashboardData } from '@/pages/dashboard/hooks/useDashboardData'
-import { preloadAIPoolData } from '@/pages/ai-pool/hooks'
 import { preloadAIProvidersData } from '@/pages/ai-providers/hooks'
 import { preloadAuthFilesData } from '@/pages/auth-files/hooks'
 import { preloadApiKeysData } from '@/pages/api-keys/hooks'
@@ -15,19 +14,17 @@ import {
   Bot,
   FileText,
   Shield,
-  ScrollText,
-  Database
+  ScrollText
 } from 'lucide-react'
 
 // 页面组件
-import { LoginPage, DashboardPage, ConfigPage, AIProvidersPage, ApiKeysPage, AIPoolPage, AuthFilesPage, OAuthPage, LogsPage } from '@/pages'
+import { LoginPage, DashboardPage, ConfigPage, AIProvidersPage, ApiKeysPage, AuthFilesPage, OAuthPage, LogsPage } from '@/pages'
 import { SystemPage } from '@/pages/system'
 
 // 导航配置 - CLI Proxy 管理
 const navItems: NavItem[] = [
   { key: 'dashboard', label: '仪表盘', path: '/admin', icon: <LayoutDashboard size={18} /> },
   { key: 'api-keys', label: 'API 密钥', path: '/admin/api-keys', icon: <Key size={18} /> },
-  { key: 'ai-pool', label: 'AI 号池', path: '/admin/ai-pool', icon: <Database size={18} /> },
   { key: 'ai-providers', label: 'AI 提供商', path: '/admin/ai-providers', icon: <Bot size={18} /> },
   { key: 'auth-files', label: '认证文件', path: '/admin/auth-files', icon: <FileText size={18} /> },
   { key: 'oauth', label: 'OAuth', path: '/admin/oauth', icon: <Shield size={18} /> },
@@ -58,7 +55,6 @@ function ProtectedRoute() {
       if (connectionStatus === 'connected' || useAuthStore.getState().connectionStatus === 'connected') {
         await Promise.all([
           preloadDashboardData(fetchConfig),
-          preloadAIPoolData(),
           preloadAIProvidersData(fetchConfig),
           preloadAuthFilesData(),
           preloadApiKeysData()
@@ -113,7 +109,6 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="api-keys" element={<ApiKeysPage />} />
-              <Route path="ai-pool" element={<AIPoolPage />} />
               <Route path="ai-providers" element={<AIProvidersPage />} />
               <Route path="auth-files" element={<AuthFilesPage />} />
               <Route path="oauth" element={<OAuthPage />} />

@@ -1,28 +1,44 @@
 /**
  * Gemini 提供商配置页
- * 字段：apiKey, prefix, baseUrl, headers, excludedModels
+ * 字段：apiKey, priority, prefix, baseUrl, proxyUrl, headers, models, excludedModels
  */
 
 import { useState, useCallback } from 'react'
 import { Plus, RefreshCw, X } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
-import { providersApi, type GeminiKeyConfig } from '@/services/api/providers'
+import { providersApi, normalizeGeminiKeyConfig, type GeminiKeyConfig } from '@/services/api/providers'
 import { PROVIDER_CONFIGS } from '../../constants'
-import { KeyItem, HeadersInput, headersToEntries, entriesToHeaders, type HeaderEntry } from '../../components'
+import {
+  KeyItem,
+  HeadersInput,
+  headersToEntries,
+  entriesToHeaders,
+  type HeaderEntry,
+  ModelsInput,
+  modelsToEntries,
+  entriesToModels,
+  type ModelEntry
+} from '../../components'
 
 interface GeminiFormState {
   apiKey: string
+  priority: string
   prefix: string
   baseUrl: string
+  proxyUrl: string
   headers: HeaderEntry[]
+  models: ModelEntry[]
   excludedModels: string
 }
 
 const emptyForm: GeminiFormState = {
   apiKey: '',
+  priority: '',
   prefix: '',
   baseUrl: '',
+  proxyUrl: '',
   headers: [],
+  models: [],
   excludedModels: ''
 }
 
@@ -32,7 +48,10 @@ export function GeminiProvider() {
   const fetchConfig = useConfigStore((state) => state.fetchConfig)
   const disableControls = connectionStatus !== 'connected'
 
-  const keys = config?.geminiApiKeys || []
+  const rawKeys = ((config as any)?.geminiApiKeys ?? config?.['gemini-api-key'] ?? []) as any[]
+  const keys = rawKeys
+    .map((item) => normalizeGeminiKeyConfig(item))
+    .filter(Boolean) as GeminiKeyConfig[]
   const [refreshing, setRefreshing] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -58,9 +77,12 @@ export function GeminiProvider() {
       const item = keys[index]
       setForm({
         apiKey: item.apiKey || '',
+        priority: item.priority !== undefined ? String(item.priority) : '',
         prefix: item.prefix || '',
         baseUrl: item.baseUrl || '',
+        proxyUrl: item.proxyUrl || '',
         headers: headersToEntries(item.headers),
+        models: modelsToEntries(item.models),
         excludedModels: (item.excludedModels || []).join('\n')
       })
     } else {
@@ -80,13 +102,22 @@ export function GeminiProvider() {
   const handleSave = async () => {
     if (!form.apiKey.trim()) return
 
+    const priorityValue = form.priority.trim()
+    const parsedPriority = priorityValue === '' ? undefined : Number(priorityValue)
+    if (parsedPriority !== undefined && !Number.isFinite(parsedPriority)) return
+
     setSaving(true)
     try {
+      const base = editingIndex !== null ? keys[editingIndex] : undefined
       const payload: GeminiKeyConfig = {
+        ...(base || {}),
         apiKey: form.apiKey.trim(),
+        priority: parsedPriority,
         prefix: form.prefix.trim() || undefined,
         baseUrl: form.baseUrl.trim() || undefined,
+        proxyUrl: form.proxyUrl.trim() || undefined,
         headers: entriesToHeaders(form.headers),
+        models: entriesToModels(form.models),
         excludedModels: form.excludedModels.split('\n').map(s => s.trim()).filter(Boolean)
       }
 
@@ -234,7 +265,18 @@ export function GeminiProvider() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Priority</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={form.priority}
+                    onChange={(e) => setForm(prev => ({ ...prev, priority: e.target.value }))}
+                    disabled={saving}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Prefix</label>
                   <input
@@ -259,9 +301,27 @@ export function GeminiProvider() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Proxy URL</label>
+                <input
+                  type="text"
+                  placeholder="代理地址 (可选)"
+                  value={form.proxyUrl}
+                  onChange={(e) => setForm(prev => ({ ...prev, proxyUrl: e.target.value }))}
+                  disabled={saving}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
               <HeadersInput
                 headers={form.headers}
                 onChange={(headers) => setForm(prev => ({ ...prev, headers }))}
+                disabled={saving}
+              />
+
+              <ModelsInput
+                models={form.models}
+                onChange={(models) => setForm(prev => ({ ...prev, models }))}
                 disabled={saving}
               />
 

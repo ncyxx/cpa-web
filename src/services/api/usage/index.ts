@@ -38,9 +38,16 @@ export const usageApi = {
 
   exportUsage: () => apiClient.getRaw('/usage/export'),
 
-  importUsage: (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file, file.name)
-    return apiClient.postForm('/usage/import', formData)
+  importUsage: async (file: File) => {
+    const text = await file.text()
+    let payload: any
+
+    try {
+      payload = JSON.parse(text)
+    } catch {
+      throw new Error('导入文件不是有效的 JSON')
+    }
+
+    return apiClient.post('/usage/import', payload)
   }
 }

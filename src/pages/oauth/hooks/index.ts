@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { oauthApi, type OAuthProvider, type KiroAuthMethod, type IFlowCookieResponse, type VertexImportResponse } from '@/services/api/oauth'
+import { oauthApi, type OAuthProvider, type IFlowCookieResponse, type VertexImportResponse } from '@/services/api/oauth'
 
 export interface ProviderState {
   url?: string
@@ -12,11 +12,6 @@ export interface ProviderState {
   error?: string
   polling: boolean
   projectId?: string
-  authMethod?: KiroAuthMethod  // Kiro 认证方式
-  callbackUrl?: string
-  callbackSubmitting?: boolean
-  callbackStatus?: 'success' | 'error'
-  callbackError?: string
 }
 
 const initialState: ProviderState = {
@@ -67,32 +62,23 @@ export function useOAuthProviders() {
     }, 3000)
   }, [updateState])
 
-  const startAuth = useCallback(async (provider: OAuthProvider, authMethod?: KiroAuthMethod) => {
+  const startAuth = useCallback(async (provider: OAuthProvider) => {
     const state = states[provider] || initialState
     const projectId = provider === 'gemini-cli' ? state.projectId?.trim() : undefined
-    const method = provider === 'kiro' ? (authMethod || state.authMethod) : undefined
 
     if (provider === 'gemini-cli' && !projectId) {
       updateState(provider, { error: '请输入 Project ID' })
       return
     }
 
-    if (provider === 'kiro' && !method) {
-      updateState(provider, { error: '请选择认证方式' })
-      return
-    }
-
     updateState(provider, {
       status: 'waiting',
       polling: true,
-      error: undefined,
-      callbackStatus: undefined,
-      callbackError: undefined,
-      callbackUrl: ''
+      error: undefined
     })
 
     try {
-      const res = await oauthApi.startAuth(provider, { projectId, method })
+      const res = await oauthApi.startAuth(provider, { projectId })
       updateState(provider, { url: res.url, state: res.state, status: 'waiting', polling: true })
       
       if (res.state) startPolling(provider, res.state)
@@ -101,41 +87,19 @@ export function useOAuthProviders() {
     }
   }, [states, updateState, startPolling])
 
-  const submitCallback = useCallback(async (provider: OAuthProvider) => {
-    const state = states[provider]
-    const redirectUrl = state?.callbackUrl?.trim()
-    if (!redirectUrl) return
-
-    updateState(provider, { callbackSubmitting: true, callbackStatus: undefined, callbackError: undefined })
-
-    try {
-      await oauthApi.submitCallback(provider, redirectUrl)
-      updateState(provider, { callbackSubmitting: false, callbackStatus: 'success' })
-    } catch (err: any) {
-      const errorMessage = err?.status === 404 
-        ? '请更新 CLI Proxy API 或检查连接' 
-        : err?.message
-      updateState(provider, { callbackSubmitting: false, callbackStatus: 'error', callbackError: errorMessage })
-    }
-  }, [states, updateState])
-
   const setProjectId = useCallback((provider: OAuthProvider, projectId: string) => {
-    updateState(provider, { projectId, error: undefined })
-  }, [updateState])
-
-  const setAuthMethod = useCallback((provider: OAuthProvider, authMethod: KiroAuthMethod) => {
-    updateState(provider, { authMethod, error: undefined })
-  }, [updateState])
-
-  const setCallbackUrl = useCallback((provider: OAuthProvider, callbackUrl: string) => {
-    updateState(provider, { callbackUrl, callbackStatus: undefined, callbackError: undefined })
+    updateState(provider, {
+      projectId,
+      error: undefined,
+      status: 'idle'
+    })
   }, [updateState])
 
   const getState = useCallback((provider: OAuthProvider) => {
     return states[provider] || initialState
   }, [states])
 
-  return { getState, startAuth, submitCallback, setProjectId, setAuthMethod, setCallbackUrl }
+  return { getState, startAuth, setProjectId }
 }
 
 /**

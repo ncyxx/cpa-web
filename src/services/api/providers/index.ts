@@ -39,7 +39,6 @@ export {
 export { providersApi } from './api'
 
 // Provider APIs
-export { kiroProviderApi, type KiroToken, type KiroTokensResponse, type KiroQuotaResponse, type KiroHealthCheckResult } from './kiro'
 export { geminiProviderApi } from './gemini'
 export { codexProviderApi } from './codex'
 export { claudeProviderApi } from './claude'

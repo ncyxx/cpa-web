@@ -2,9 +2,9 @@
  * AI 提供商配置常量
  */
 
-import { Sparkles, Code2, MessageSquare, Cpu, Terminal, Zap, type LucideIcon } from 'lucide-react'
+import { Sparkles, Code2, MessageSquare, Cpu, Terminal, type LucideIcon } from 'lucide-react'
 
-export type ProviderType = 'gemini' | 'codex' | 'claude' | 'openai' | 'ampcode' | 'kiro'
+export type ProviderType = 'gemini' | 'codex' | 'claude' | 'openai' | 'ampcode'
 
 export interface ProviderConfig {
   type: ProviderType
@@ -67,17 +67,7 @@ export const PROVIDER_CONFIGS: Record<ProviderType, ProviderConfig> = {
     color: 'text-red-600',
     gradientBg: 'bg-gradient-to-br from-red-50 to-orange-50',
     headerBg: 'from-red-50 to-orange-50'
-  },
-  kiro: {
-    type: 'kiro',
-    title: 'Kiro',
-    sub: 'AWS CodeWhisperer',
-    icon: Zap,
-    bg: 'bg-violet-500',
-    color: 'text-violet-600',
-    gradientBg: 'bg-gradient-to-br from-violet-50 to-purple-50',
-    headerBg: 'from-violet-50 to-purple-50'
   }
 }
 
-export const PROVIDER_ORDER: ProviderType[] = ['gemini', 'codex', 'claude', 'openai', 'ampcode', 'kiro']
+export const PROVIDER_ORDER: ProviderType[] = ['gemini', 'codex', 'claude', 'openai', 'ampcode']

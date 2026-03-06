@@ -22,6 +22,22 @@ const normalizePrefix = (value: any): string | undefined => {
   return trimmed ? trimmed : undefined
 }
 
+const normalizeNumber = (value: any): number | undefined => {
+  if (value === undefined || value === null || value === '') return undefined
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : undefined
+}
+
+const normalizeBoolean = (value: any): boolean | undefined => {
+  if (value === undefined || value === null || value === '') return undefined
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value !== 0
+  const text = String(value).trim().toLowerCase()
+  if (['true', '1', 'yes', 'y', 'on'].includes(text)) return true
+  if (['false', '0', 'no', 'n', 'off'].includes(text)) return false
+  return undefined
+}
+
 const normalizeExcludedModels = (input: any): string[] => {
   const rawList = Array.isArray(input) ? input : typeof input === 'string' ? input.split(/[\n,]/) : []
   const seen = new Set<string>()
@@ -87,11 +103,15 @@ export const normalizeProviderKeyConfig = (item: any): ProviderKeyConfig | null 
   if (!trimmed) return null
 
   const config: ProviderKeyConfig = { apiKey: trimmed }
+  const priority = normalizeNumber(item.priority ?? item['priority'])
+  if (priority !== undefined) config.priority = priority
   const prefix = normalizePrefix(item.prefix ?? item['prefix'])
   if (prefix) config.prefix = prefix
   const baseUrl = item['base-url'] ?? item.baseUrl
+  const websockets = normalizeBoolean(item.websockets ?? item['websockets'])
   const proxyUrl = item['proxy-url'] ?? item.proxyUrl
   if (baseUrl) config.baseUrl = String(baseUrl)
+  if (websockets !== undefined) config.websockets = websockets
   if (proxyUrl) config.proxyUrl = String(proxyUrl)
   const headers = normalizeHeaders(item.headers)
   if (headers) config.headers = headers
@@ -101,6 +121,9 @@ export const normalizeProviderKeyConfig = (item: any): ProviderKeyConfig | null 
     item['excluded-models'] ?? item.excludedModels ?? item['excluded_models'] ?? item.excluded_models
   )
   if (excludedModels.length) config.excludedModels = excludedModels
+  if (item.cloak && typeof item.cloak === 'object') {
+    config.cloak = { ...item.cloak }
+  }
   return config
 }
 
@@ -114,10 +137,16 @@ export const normalizeGeminiKeyConfig = (item: any): GeminiKeyConfig | null => {
   if (!trimmed) return null
 
   const config: GeminiKeyConfig = { apiKey: trimmed }
+  const priority = normalizeNumber(item.priority ?? item['priority'])
+  if (priority !== undefined) config.priority = priority
   const prefix = normalizePrefix(item.prefix ?? item['prefix'])
   if (prefix) config.prefix = prefix
   const baseUrl = item['base-url'] ?? item.baseUrl ?? item['base_url']
+  const proxyUrl = item['proxy-url'] ?? item.proxyUrl ?? item['proxy_url']
   if (baseUrl) config.baseUrl = String(baseUrl)
+  if (proxyUrl) config.proxyUrl = String(proxyUrl)
+  const models = normalizeModelAliases(item.models)
+  if (models.length) config.models = models
   const headers = normalizeHeaders(item.headers)
   if (headers) config.headers = headers
   const excludedModels = normalizeExcludedModels(item['excluded-models'] ?? item.excludedModels)

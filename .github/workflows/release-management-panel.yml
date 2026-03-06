@@ -1,0 +1,53 @@
+name: release-management-panel
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attach management.html to
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-management-panel:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: cpa-web-main/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: cpa-web-main
+        run: npm ci
+
+      - name: Build management.html
+        working-directory: cpa-web-main
+        run: npm run build:management
+
+      - name: Verify artifact
+        run: |
+          test -f cpa-web-main/dist/management.html
+          ls -lh cpa-web-main/dist/management.html
+
+      - name: Upload management.html to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TARGET_TAG }}
+          files: cpa-web-main/dist/management.html
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

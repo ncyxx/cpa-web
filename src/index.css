@@ -4,6 +4,18 @@
 /* Apple Design System 2025 - Liquid Glass */
 @import './assets/main.css';
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable both-edges;
+}
+
 /* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 8px;

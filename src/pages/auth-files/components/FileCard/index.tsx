@@ -2,160 +2,176 @@
  * 文件卡片组件
  */
 
-import { Bot, Eye, Download, Trash2, Loader2 } from 'lucide-react'
+import { Bot, CheckCircle2, Download, Eye, Loader2, Trash2 } from 'lucide-react'
 import type { AuthFile } from '@/services/api/authFiles'
 import { formatFileSize, formatModified, getTypeColor, getTypeLabel } from '../../utils'
-import { 
-  getLoadRateColor, 
-  getSuccessRateColorClass, 
-  formatPercent 
-} from '@/utils/loadRate'
+import { formatPercent, type AccountLoadStats } from '@/utils/loadRate'
 
 interface FileCardProps {
   file: AuthFile
   isDeleting: boolean
-  /** 负载率 (0-100) */
+  statusUpdating: boolean
+  selectionMode: boolean
+  selected: boolean
+  stats?: AccountLoadStats | null
   loadRate?: number
-  /** 所有文件的总请求数 */
   totalRequests?: number
+  onSelectChange: (checked: boolean) => void
+  onToggleEnabled: (nextEnabled: boolean) => void
   onShowModels: () => void
   onShowDetail: () => void
   onDownload: () => void
   onDelete: () => void
 }
 
+function getStatusLabel(file: AuthFile): string {
+  const status = (file.status || '').trim().toLowerCase()
+  if (file.disabled) return '禁用'
+  if (file.unavailable) return '不可用'
+  if (status === 'error' || status === 'invalid' || status === 'failed') return '错误'
+  if (status === 'active' || status === 'ok' || status === 'ready') return '有效'
+  return file.status || '未知'
+}
+
+function getStatusTone(file: AuthFile): string {
+  const status = (file.status || '').trim().toLowerCase()
+  if (file.disabled) return 'border-slate-200 bg-slate-100 text-slate-700'
+  if (file.unavailable) return 'border-amber-200 bg-amber-50 text-amber-700'
+  if (status === 'error' || status === 'invalid' || status === 'failed') return 'border-red-200 bg-red-50 text-red-700'
+  return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+}
+
 export function FileCard({
   file,
   isDeleting,
-  loadRate = 0,
-  totalRequests = 0,
+  statusUpdating,
+  selectionMode,
+  selected,
+  stats,
+  onSelectChange,
+  onToggleEnabled,
   onShowModels,
   onShowDetail,
   onDownload,
   onDelete
 }: FileCardProps) {
-  const typeColor = getTypeColor(file.type || 'unknown')
-  
-  // 计算成功率
-  const successCount = file.success_count ?? 0
-  const failureCount = file.failure_count ?? 0
-  const fileRequests = successCount + failureCount
-  const successRate = file.success_rate ?? (fileRequests > 0 ? (successCount / fileRequests) * 100 : 100)
-  const loadRateColor = getLoadRateColor(loadRate)
-  const successRateClass = getSuccessRateColorClass(successRate)
+  const providerTone = getTypeColor(file.type || 'unknown')
+  const displayName = file.email || file.label || file.account || file.name
+  const enabled = !file.disabled
+  const successRate = stats?.successRate
+  const requestCount = stats?.totalRequests
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      {/* 卡片头部 */}
-      <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <span className={`px-2 py-1 rounded-md text-xs font-medium shrink-0 ${typeColor.bg} ${typeColor.text} ${typeColor.border || ''}`}>
-            {getTypeLabel(file.type || 'unknown')}
-          </span>
-          <span className="text-sm font-medium text-gray-900 truncate flex-1" title={file.name}>
-            {file.name}
-          </span>
-        </div>
-      </div>
-
-      {/* 卡片内容 */}
-      <div className="p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-gray-400 text-xs">文件大小</p>
-            <p className="text-gray-700 font-medium">{file.size ? formatFileSize(file.size) : '-'}</p>
+    <article className={`group overflow-hidden rounded-[20px] border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${selected ? 'border-violet-300 ring-4 ring-violet-100' : 'border-slate-200'}`}>
+      <div className="h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-orange-400" />
+      <div className="p-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            {selectionMode ? (
+              <label className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-violet-200 bg-violet-50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={(e) => onSelectChange(e.target.checked)}
+                  className="h-3.5 w-3.5 cursor-pointer rounded border-violet-300 text-violet-600 focus:ring-violet-500/30"
+                />
+              </label>
+            ) : (
+              <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-violet-400" />
+            )}
+            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${providerTone.bg} ${providerTone.text} ${providerTone.border || ''}`}>
+              {getTypeLabel(file.type || 'unknown')}
+            </span>
           </div>
-          <div>
-            <p className="text-gray-400 text-xs">修改时间</p>
-            <p className="text-gray-700 font-medium truncate" title={formatModified(file)}>
-              {formatModified(file)}
-            </p>
-          </div>
-          {file.email && (
-            <div className="col-span-2">
-              <p className="text-gray-400 text-xs">邮箱</p>
-              <p className="text-gray-700 font-medium truncate" title={file.email}>{file.email}</p>
-            </div>
-          )}
-        </div>
-        
-        {/* 负载率和成功率 */}
-        {fileRequests > 0 && (
-          <div className="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-gray-50">
-            {/* 负载率 */}
-            <div>
-              <p className="text-gray-400 text-xs mb-1">负载率</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{ 
-                      width: `${Math.min(loadRate, 100)}%`,
-                      backgroundColor: loadRateColor
-                    }}
-                  />
-                </div>
-                <span 
-                  className="text-xs font-semibold min-w-[36px] text-right"
-                  style={{ color: loadRateColor }}
-                  title={`请求次数: ${fileRequests} / ${totalRequests}`}
-                >
-                  {formatPercent(loadRate)}
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusTone(file)}`}>
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {getStatusLabel(file)}
+            </span>
+            <button
+              type="button"
+              onClick={() => onToggleEnabled(!enabled)}
+              disabled={statusUpdating}
+              className={`relative h-6 w-11 rounded-full transition-colors disabled:opacity-50 cursor-pointer ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              title={enabled ? '点击禁用配置' : '点击启用配置'}
+              aria-label={enabled ? '禁用配置' : '启用配置'}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+              {statusUpdating ? (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
                 </span>
-              </div>
-            </div>
-            
-            {/* 成功率 */}
-            <div>
-              <p className="text-gray-400 text-xs mb-1">成功率</p>
-              <span 
-                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${successRateClass}`}
-                title={`成功: ${successCount}, 失败: ${failureCount}`}
-              >
-                {formatPercent(successRate)} 
-                <span className="opacity-70">(✓{successCount} ✗{failureCount})</span>
-              </span>
-            </div>
+              ) : null}
+            </button>
           </div>
-        )}
+        </div>
 
-        {/* 操作按钮 */}
-        <div className="flex items-center gap-1.5 pt-2 border-t border-gray-100">
+        <div className="mt-3 min-w-0">
+          <h3 className="truncate text-base font-semibold tracking-tight text-slate-950" title={displayName}>{displayName}</h3>
+          <p className="mt-1 truncate font-mono text-[11px] text-slate-500" title={file.name}>{file.name}</p>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">文件大小</div>
+            <div className="mt-1 text-sm font-semibold text-slate-950">{file.size ? formatFileSize(file.size) : '-'}</div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">修改时间</div>
+            <div className="mt-1 truncate text-sm font-semibold text-slate-950">{formatModified(file)}</div>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+            请求 {typeof requestCount === 'number' ? requestCount.toLocaleString() : '-'}
+          </span>
+          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">
+            成功率 {typeof successRate === 'number' ? formatPercent(successRate) : '-'}
+          </span>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-4">
           <button
             onClick={onShowModels}
-            className="flex-1 px-2 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            disabled={statusUpdating}
+            className="inline-flex h-10 items-center justify-center gap-1 rounded-2xl bg-violet-50 px-3 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-50 cursor-pointer"
             title="查看模型"
           >
-            <Bot className="w-3.5 h-3.5" />
+            <Bot className="h-3.5 w-3.5" />
             模型
           </button>
           <button
             onClick={onShowDetail}
-            className="flex-1 px-2 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            disabled={statusUpdating}
+            className="inline-flex h-10 items-center justify-center gap-1 rounded-2xl bg-blue-50 px-3 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50 cursor-pointer"
             title="查看详情"
           >
-            <Eye className="w-3.5 h-3.5" />
+            <Eye className="h-3.5 w-3.5" />
             详情
           </button>
           <button
             onClick={onDownload}
-            className="flex-1 px-2 py-1.5 text-green-600 hover:bg-green-50 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            disabled={statusUpdating}
+            className="inline-flex h-10 items-center justify-center gap-1 rounded-2xl bg-cyan-50 px-3 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-100 disabled:opacity-50 cursor-pointer"
             title="下载"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="h-3.5 w-3.5" />
             下载
           </button>
           <button
             onClick={onDelete}
-            disabled={isDeleting}
-            className="flex-1 px-2 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+            disabled={isDeleting || statusUpdating}
+            className="inline-flex h-10 items-center justify-center gap-1 rounded-2xl bg-red-50 px-3 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50 cursor-pointer"
             title="删除"
           >
-            {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
             删除
           </button>
         </div>
       </div>
-    </div>
+    </article>
   )
 }

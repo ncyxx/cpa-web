@@ -2,8 +2,7 @@
  * OAuth 页面常量
  */
 
-export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'qwen' | 'iflow' | 'kiro'
-export type KiroAuthMethod = 'google' | 'github' | 'aws'
+export type OAuthProvider = 'codex' | 'anthropic' | 'antigravity' | 'gemini-cli' | 'qwen' | 'iflow'
 
 export interface ProviderConfig {
   id: OAuthProvider
@@ -14,7 +13,6 @@ export interface ProviderConfig {
   bgColor: string
   supportsCallback: boolean
   requiresProjectId?: boolean
-  requiresAuthMethod?: boolean  // Kiro 需要选择认证方式
 }
 
 export const PROVIDERS: ProviderConfig[] = [
@@ -72,25 +70,5 @@ export const PROVIDERS: ProviderConfig[] = [
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-50',
     supportsCallback: true
-  },
-  {
-    id: 'kiro',
-    name: 'Kiro',
-    description: '通过 AWS/Google/GitHub OAuth 登录获取 Kiro 凭证',
-    icon: 'kiro',
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    supportsCallback: false,
-    requiresAuthMethod: true
   }
 ]
-
-export const KIRO_AUTH_METHODS: { id: KiroAuthMethod; name: string; icon: string }[] = [
-  { id: 'aws', name: 'AWS Builder ID', icon: 'aws' },
-  { id: 'google', name: 'Google', icon: 'google' },
-  { id: 'github', name: 'GitHub', icon: 'github' }
-]
-
-export const CALLBACK_PROVIDER_MAP: Partial<Record<OAuthProvider, string>> = {
-  'gemini-cli': 'gemini'
-}

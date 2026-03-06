@@ -3,7 +3,7 @@
  * Centralized provider metadata and styling
  */
 
-import { Zap, Sparkles, Code2, MessageSquare, Cpu, Bot, Workflow, GitBranch, Layers } from 'lucide-react'
+import { Sparkles, Code2, MessageSquare, Cpu, Bot, Workflow, GitBranch, Layers } from 'lucide-react'
 import type { ProviderType } from '@/services/api/providers'
 
 export interface ProviderConfig {
@@ -18,16 +18,6 @@ export interface ProviderConfig {
 }
 
 export const PROVIDER_CONFIGS: Record<ProviderType, ProviderConfig> = {
-  kiro: {
-    title: 'Kiro',
-    sub: 'AWS CodeWhisperer',
-    icon: <Zap className="w-5 h-5" />,
-    bg: 'bg-violet-100',
-    color: 'text-violet-600',
-    headerBg: 'from-violet-50 to-purple-50',
-    link: '/kiro-tokens',
-    showDetailedStats: true // Kiro has full stats support
-  },
   gemini: {
     title: 'Gemini',
     sub: 'Google AI',
@@ -107,7 +97,6 @@ export function getProviderConfig(provider: ProviderType): ProviderConfig {
 
 // Provider display order
 export const PROVIDER_ORDER: ProviderType[] = [
-  'kiro',
   'gemini',
   'codex',
   'claude',

@@ -14,6 +14,7 @@ export interface LogEntry {
 export interface RequestErrorLog {
   name: string
   size?: number
+  modified?: number
   modTime?: string
 }
 
@@ -33,8 +34,21 @@ export const logsApi = {
   deleteLogs: () => apiClient.delete('/logs'),
 
   // 获取错误日志列表
-  getRequestErrorLogs: () => 
-    apiClient.get<{ files: RequestErrorLog[] }>('/request-error-logs'),
+  getRequestErrorLogs: async () => {
+    const response = await apiClient.get<{ files: RequestErrorLog[] }>('/request-error-logs')
+    const files = Array.isArray(response?.files) ? response.files : []
+    return {
+      files: files.map((file) => {
+        const modified = typeof file?.modified === 'number' ? file.modified : undefined
+        const modTime = file?.modTime || (modified !== undefined ? new Date(modified * 1000).toISOString() : undefined)
+        return {
+          ...file,
+          modified,
+          modTime
+        }
+      })
+    }
+  },
 
   // 下载错误日志文件
   downloadRequestErrorLog: (name: string) => 

@@ -4,8 +4,36 @@ import { useAuthStore } from '@/stores'
 import { Eye, EyeOff } from 'lucide-react'
 import './LoginPage.scss'
 
+const readConfiguredApiBase = (): string => {
+  try {
+    const url = new URL(window.location.href)
+    const fromQuery = url.searchParams.get('apiBase') || url.searchParams.get('api_base') || url.searchParams.get('backend')
+    if (fromQuery?.trim()) {
+      return fromQuery.trim()
+    }
+
+    const fromMeta = document
+      .querySelector('meta[name="cpa-api-base"]')
+      ?.getAttribute('content')
+      ?.trim()
+    if (fromMeta) {
+      return fromMeta
+    }
+
+    const fromWindow = (window as typeof window & { __CPA_API_BASE__?: string }).__CPA_API_BASE__
+    if (typeof fromWindow === 'string' && fromWindow.trim()) {
+      return fromWindow.trim()
+    }
+  } catch {}
+
+  return ''
+}
+
 const detectApiBaseFromLocation = (): string => {
   try {
+    const configured = normalizeApiBase(readConfiguredApiBase())
+    if (configured) return configured
+
     const { protocol, hostname, port } = window.location
     const normalizedPort = port ? `:${port}` : ''
     return `${protocol}//${hostname}${normalizedPort}`
@@ -142,7 +170,7 @@ export function LoginPage() {
                 disabled={!showCustomBase}
                 className="login-form__input login-form__input--mono"
               />
-              <p className="login-form__helper">自动检测自当前页面地址</p>
+              <p className="login-form__helper">自动检测当前页面地址，或通过 ?apiBase= 指定后端地址</p>
             </div>
 
             <div className="login-form__checkbox">

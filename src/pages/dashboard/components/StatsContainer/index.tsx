@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 import { Key, Bot, FileText, Activity, Zap, Timer, TrendingUp, DollarSign } from 'lucide-react'
 import { calculateRecentPerMinuteRates, calculateTotalCost, loadModelPrices, formatPerMinuteValue, formatUsd } from '@/utils/usage'
 import { ModelPricePanel } from '../ModelPricePanel'
+import { getModelSeries } from '../../hooks'
 
 interface StatsContainerProps {
   stats: {
@@ -92,6 +93,35 @@ export function StatsContainer({ stats, totalProviders, usageStats, loading }: S
     const cost = usageStats ? calculateTotalCost(usageStats, modelPrices) : 0
     return { totalCost: cost, hasPrices: Object.keys(modelPrices).length > 0 }
   }, [usageStats, pricesVersion])
+
+  const seriesModels = useMemo(() => {
+    const grouped: Record<string, Record<string, number>> = {}
+
+    if (usageStats?.apis) {
+      Object.values(usageStats.apis).forEach((apiData: any) => {
+        if (!apiData?.models) return
+
+        Object.entries(apiData.models).forEach(([modelName, modelData]: [string, any]) => {
+          const name = String(modelName || '').trim()
+          if (!name) return
+
+          const series = getModelSeries(name)
+          const requests = Number(modelData?.total_requests || 0)
+
+          if (!grouped[series]) grouped[series] = {}
+          grouped[series][name] = (grouped[series][name] || 0) + requests
+        })
+      })
+    }
+
+    const result: Record<string, string[]> = {}
+    Object.entries(grouped).forEach(([series, models]) => {
+      result[series] = Object.entries(models)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([name]) => name)
+    })
+    return result
+  }, [usageStats])
 
   const cardsData = [
     {
@@ -193,6 +223,7 @@ export function StatsContainer({ stats, totalProviders, usageStats, loading }: S
         open={pricesPanelOpen}
         onClose={() => setPricesPanelOpen(false)}
         onSave={() => setPricesVersion(v => v + 1)}
+        seriesModels={seriesModels}
       />
     </div>
   )

@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react'
 import { Bot, Check, Settings2 } from 'lucide-react'
 import { useAuthStore, useConfigStore } from '@/stores'
 import { PROVIDER_CONFIGS, PROVIDER_ORDER, type ProviderType } from './constants'
-import { GeminiProvider, CodexProvider, ClaudeProvider, OpenAIProvider, AmpcodeProvider, KiroProvider } from './providers'
+import { GeminiProvider, CodexProvider, ClaudeProvider, OpenAIProvider, AmpcodeProvider } from './providers'
 
 function StatCard({ icon, label, value, bg, color, gradientBg }: {
   icon: React.ReactNode
@@ -60,13 +60,20 @@ export function AIProvidersPage() {
   const config = useConfigStore((state) => state.config)
   const [activeTab, setActiveTab] = useState<ProviderType>('gemini')
 
+  const getCount = (camelKey: string, kebabKey: string) => {
+    const camel = (config as any)?.[camelKey]
+    if (Array.isArray(camel)) return camel.length
+    const kebab = (config as any)?.[kebabKey]
+    if (Array.isArray(kebab)) return kebab.length
+    return 0
+  }
+
   const counts = useMemo(() => ({
-    gemini: config?.geminiApiKeys?.length || 0,
-    codex: config?.codexApiKeys?.length || 0,
-    claude: config?.claudeApiKeys?.length || 0,
-    openai: config?.openaiCompatibility?.length || 0,
-    ampcode: 0,
-    kiro: 0
+    gemini: getCount('geminiApiKeys', 'gemini-api-key'),
+    codex: getCount('codexApiKeys', 'codex-api-key'),
+    claude: getCount('claudeApiKeys', 'claude-api-key'),
+    openai: getCount('openaiCompatibility', 'openai-compatibility'),
+    ampcode: 0
   }), [config])
 
   const totalKeys = counts.gemini + counts.codex + counts.claude + counts.openai
@@ -79,14 +86,13 @@ export function AIProvidersPage() {
       case 'claude': return <ClaudeProvider />
       case 'openai': return <OpenAIProvider />
       case 'ampcode': return <AmpcodeProvider />
-      case 'kiro': return <KiroProvider />
     }
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-4 gap-3">
-        <StatCard icon={<Bot className="w-4 h-4" />} label="提供商总数" value={6} bg="bg-purple-500" color="text-purple-600" gradientBg="bg-gradient-to-br from-purple-50 to-purple-100/50" />
+        <StatCard icon={<Bot className="w-4 h-4" />} label="提供商总数" value={5} bg="bg-purple-500" color="text-purple-600" gradientBg="bg-gradient-to-br from-purple-50 to-purple-100/50" />
         <StatCard icon={<Settings2 className="w-4 h-4" />} label="配置总数" value={totalKeys} bg="bg-blue-500" color="text-blue-600" gradientBg="bg-gradient-to-br from-blue-50 to-blue-100/50" />
         <StatCard
           icon={<Check className="w-4 h-4" />}

@@ -1,13 +1,15 @@
 {
   "name": "cli-proxy-ui-new",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.01",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:management": "tsc -b && vite build && node scripts/export-management-html.mjs",
+    "export:management": "node scripts/export-management-html.mjs"
   },
   "dependencies": {
     "@codemirror/lang-yaml": "^6.1.2",
@@ -45,5 +47,9 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.59.0",
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
   }
 }

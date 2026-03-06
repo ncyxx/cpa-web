@@ -10,6 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    cssCodeSplit: false,
+    assetsInlineLimit: Number.MAX_SAFE_INTEGER,
+  },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },

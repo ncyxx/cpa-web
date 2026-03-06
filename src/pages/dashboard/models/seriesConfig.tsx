@@ -220,8 +220,8 @@ export const MODEL_SERIES_CONFIG: Record<string, ModelSeriesConfig> = {
 // 模型系列显示顺序
 export const MODEL_SERIES_ORDER = [
   'claude',
-  'gemini', 
   'gpt',
+  'gemini', 
   'qwen',
   'deepseek',
   'kimi',

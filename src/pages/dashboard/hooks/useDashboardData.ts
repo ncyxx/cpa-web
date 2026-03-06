@@ -10,9 +10,8 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { create } from 'zustand'
 import { useAuthStore, useConfigStore } from '@/stores'
-import { apiKeysApi, providersApi, authFilesApi, usageApi, kiroApi } from '@/services/api'
+import { apiKeysApi, providersApi, authFilesApi, usageApi } from '@/services/api'
 import type { UsageStatistics } from '@/services/api/usage'
-import type { KiroToken } from '@/services/api/kiro'
 import type { ProviderCardData } from '../components'
 
 // 扩展的供应商数据，包含请求统计
@@ -82,7 +81,7 @@ let isPreloading = false
  * 根据模型名称确定模型系列
  * 基于后端 model_definitions_*.go 文件中的所有模型定义
  */
-function getModelSeries(modelName: string): string {
+export function getModelSeries(modelName: string): string {
   const m = modelName.toLowerCase()
   
   // Claude 系列 (包括 Kiro/Amazon Q 的 Claude 模型)
@@ -147,12 +146,12 @@ function getModelSeries(modelName: string): string {
   
   // TStars 系列 (iFlow)
   if (m.includes('tstars')) {
-    return 'tstars'
+    return 'iflow'
   }
   
-  // Raptor 系列
+  // Raptor 归入其他
   if (m.includes('raptor')) {
-    return 'raptor'
+    return 'other'
   }
   
   return 'other'
@@ -176,9 +175,13 @@ export async function preloadDashboardData(fetchConfig: () => Promise<any>, isRe
   }
   
   try {
-    try { await fetchConfig() } catch (e) {}
+    try {
+      await fetchConfig()
+    } catch {}
+    // Cross-origin 场景下通过 /api-call 间接读取版本号，避免响应头不可见问题
+    void useAuthStore.getState().refreshServerVersion()
 
-    const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes, usageRes, kiroRes] = 
+    const [keysRes, filesRes, geminiRes, codexRes, claudeRes, openaiRes, usageRes] = 
       await Promise.allSettled([
         apiKeysApi.list(),
         authFilesApi.list(),
@@ -186,8 +189,7 @@ export async function preloadDashboardData(fetchConfig: () => Promise<any>, isRe
         providersApi.getCodexConfigs(),
         providersApi.getClaudeConfigs(),
         providersApi.getOpenAIProviders(),
-        usageApi.getUsage(),
-        kiroApi.listTokens()
+        usageApi.getUsage()
       ])
 
     store.setStats({
@@ -214,7 +216,7 @@ export async function preloadDashboardData(fetchConfig: () => Promise<any>, isRe
             let provider = 'unknown'
             const lowerModel = modelName.toLowerCase()
             if (lowerModel.includes('claude') || lowerModel.includes('sonnet') || lowerModel.includes('opus') || lowerModel.includes('haiku')) {
-              provider = 'kiro' // Claude 模型通过 Kiro 调用
+              provider = 'claude'
             } else if (lowerModel.includes('gemini')) {
               provider = 'gemini'
             } else if (lowerModel.includes('gpt') || lowerModel.includes('codex')) {
@@ -281,35 +283,6 @@ export async function preloadDashboardData(fetchConfig: () => Promise<any>, isRe
         }
       }
     }
-    if (kiroRes.status === 'fulfilled') {
-      const tokens = kiroRes.value.tokens || []
-      if (tokens.length > 0) {
-        // 从 usage API 获取 kiro 的 tokens 统计
-        const kiroTokensFromUsage = providerRequestStats['kiro']?.tokens ?? 0
-        
-        const kiroData: ProviderDataWithStats = { 
-          total: tokens.length, healthy: 0, unhealthy: 0, exhausted: 0, proCount: 0, totalUsage: 0, totalLimit: 0,
-          requests: { total: 0, success: 0, failure: 0, tokens: kiroTokensFromUsage }
-        }
-        tokens.forEach((token: KiroToken) => {
-          const status = token.status?.toLowerCase() || 'active'
-          if (status === 'active' || status === 'valid' || status === 'healthy') kiroData.healthy++
-          else if (status === 'exhausted') kiroData.exhausted++
-          else kiroData.unhealthy++
-          if ((token.subscription_title || '').toLowerCase().includes('pro')) kiroData.proCount = (kiroData.proCount || 0) + 1
-          kiroData.totalUsage += token.current_usage ?? 0
-          kiroData.totalLimit += token.usage_limit ?? 0
-          // 从 token 本身获取请求统计
-          const successCount = token.success_count ?? 0
-          const failureCount = token.failure_count ?? 0
-          kiroData.requests!.success += successCount
-          kiroData.requests!.failure += failureCount
-          kiroData.requests!.total += successCount + failureCount
-        })
-        providers.kiro = kiroData
-      }
-    }
-
     store.setProviderData(providers)
 
     // 计算模型系列统计（Claude、Gemini、GPT等）
